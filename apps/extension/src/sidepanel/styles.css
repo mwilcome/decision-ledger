@@ -363,14 +363,12 @@ body {
 }
 
 .dl-list__item--settled {
-  opacity: 0.58;
-  border-left: 3px solid color-mix(in srgb, CanvasText 14%, transparent);
-  background: color-mix(in srgb, CanvasText 2%, Canvas);
+  border-left: 3px solid #16a34a;
+  background: color-mix(in srgb, #16a34a 6%, Canvas);
 }
 
 .dl-list__item--settled .dl-list__body {
   font-weight: 400;
-  opacity: 0.92;
 }
 
 .dl-list__crumb {
@@ -414,8 +412,9 @@ body {
 }
 
 .dl-list__status--settled {
-  opacity: 0.8;
-  font-weight: 400;
+  font-weight: 500;
+  border-color: color-mix(in srgb, #16a34a 50%, transparent);
+  background: color-mix(in srgb, #16a34a 12%, Canvas);
 }
 
 .dl-list__body {
