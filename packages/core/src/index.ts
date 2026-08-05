@@ -1,6 +1,7 @@
 /**
  * @packageDocumentation
  * Pure domain types and helpers for Decision Ledger.
+ * Smoke-test marker for a second open PR (test/multi-pr-smoke).
  * This package must not import browser or DOM APIs.
  */
 
