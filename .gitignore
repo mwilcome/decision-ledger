@@ -8,6 +8,7 @@ build/
 .output/
 .wxt/
 *.local
+apps/extension/dist/
 
 # Extension packages (generated)
 *.zip

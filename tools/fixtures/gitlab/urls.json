@@ -1,0 +1,22 @@
+[
+  {
+    "url": "https://gitlab.com/acme/widgets/-/merge_requests/7",
+    "expected": {
+      "host": "gitlab",
+      "owner": "acme",
+      "name": "widgets",
+      "number": 7,
+      "page": "overview"
+    }
+  },
+  {
+    "url": "https://gitlab.com/group/sub/project/-/merge_requests/3/diffs",
+    "expected": {
+      "host": "gitlab",
+      "owner": "group/sub",
+      "name": "project",
+      "number": 3,
+      "page": "changes"
+    }
+  }
+]

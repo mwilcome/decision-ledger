@@ -1,0 +1,138 @@
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, Segoe UI, sans-serif;
+  line-height: 1.4;
+  font-size: 14px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: Canvas;
+  color: CanvasText;
+}
+
+.dl-app {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 280px;
+}
+
+.dl-app__header {
+  margin: 0;
+}
+
+.dl-app__title {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.dl-app__subtitle {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+}
+
+.dl-banner {
+  border: 1px solid color-mix(in srgb, CanvasText 20%, transparent);
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: color-mix(in srgb, CanvasText 4%, Canvas);
+}
+
+.dl-banner--empty {
+  opacity: 0.85;
+}
+
+.dl-banner__title {
+  margin: 0;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.dl-banner__meta {
+  margin: 4px 0 0;
+  opacity: 0.8;
+  font-size: 0.85rem;
+}
+
+.dl-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dl-form__label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+}
+
+.dl-form__select,
+.dl-form__textarea {
+  font: inherit;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, CanvasText 25%, transparent);
+  background: Field;
+  color: FieldText;
+}
+
+.dl-form__submit {
+  font: inherit;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  background: #2563eb;
+  color: #fff;
+}
+
+.dl-form__submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dl-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dl-list__item {
+  border: 1px solid color-mix(in srgb, CanvasText 18%, transparent);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.dl-list__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.8rem;
+  opacity: 0.9;
+}
+
+.dl-list__body {
+  margin: 6px 0;
+  white-space: pre-wrap;
+}
+
+.dl-list__footer {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.dl-list-empty {
+  margin: 0;
+  opacity: 0.8;
+}

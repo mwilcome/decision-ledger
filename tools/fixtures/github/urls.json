@@ -1,0 +1,22 @@
+[
+  {
+    "url": "https://github.com/acme/widgets/pull/42",
+    "expected": {
+      "host": "github",
+      "owner": "acme",
+      "name": "widgets",
+      "number": 42,
+      "page": "overview"
+    }
+  },
+  {
+    "url": "https://github.com/acme/widgets/pull/42/files",
+    "expected": {
+      "host": "github",
+      "owner": "acme",
+      "name": "widgets",
+      "number": 42,
+      "page": "changes"
+    }
+  }
+]

@@ -112,6 +112,24 @@ decision-ledger/
   tools/fixtures        sample URLs and HTML for tests
 ```
 
+## Develop
+
+```powershell
+git clone https://github.com/mwilcome/decision-ledger.git
+cd decision-ledger
+git checkout dev/1.0.0
+npm.cmd install
+npm.cmd run build
+```
+
+Load the unpacked extension from `apps/extension/dist` in a Chromium browser (Extensions → Developer mode → Load unpacked).
+
+```powershell
+npm.cmd run dev
+```
+
+`dev` rebuilds the extension when files change. Reload the extension in the browser after a rebuild.
+
 ## Privacy
 
 Decision text stays on the device unless you export it or turn on sync later. The extension asks for site access per site. Do not commit passwords, tokens, or secrets.

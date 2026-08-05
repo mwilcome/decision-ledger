@@ -12,6 +12,16 @@
 
 Use a current Node.js LTS release. Use a Chrome-based browser and Firefox to load local extension builds.
 
+On Windows PowerShell, if `npm` is blocked by the execution policy, use `npm.cmd` instead.
+
+```powershell
+npm.cmd install
+npm.cmd run build
+npm.cmd run dev
+```
+
+Load unpacked build from `apps/extension/dist`.
+
 ## Branches
 
 | Branch | Role |

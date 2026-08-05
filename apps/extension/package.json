@@ -1,0 +1,31 @@
+{
+  "name": "@decision-ledger/extension",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite build --watch",
+    "build": "vite build",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@decision-ledger/adapter-github": "*",
+    "@decision-ledger/adapter-gitlab": "*",
+    "@decision-ledger/core": "*",
+    "@decision-ledger/host-api": "*",
+    "@decision-ledger/shell": "*",
+    "@decision-ledger/storage": "*",
+    "@decision-ledger/ui": "*",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.320",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "@vitejs/plugin-react": "^4.4.1",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5",
+    "vite-plugin-static-copy": "^2.3.1"
+  }
+}

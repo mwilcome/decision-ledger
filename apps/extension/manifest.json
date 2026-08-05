@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "Decision Ledger",
+  "description": "Record code-review decisions on pull requests and merge requests.",
+  "version": "0.1.0",
+  "permissions": ["storage", "sidePanel"],
+  "host_permissions": [
+    "https://github.com/*",
+    "https://gitlab.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "Decision Ledger"
+  },
+  "side_panel": {
+    "default_path": "src/sidepanel/index.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://github.com/*",
+        "https://gitlab.com/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
