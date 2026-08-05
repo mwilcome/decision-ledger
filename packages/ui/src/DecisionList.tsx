@@ -1,5 +1,6 @@
-import type { Decision } from "@decision-ledger/core";
+import type { CaptureContext, Decision } from "@decision-ledger/core";
 import {
+  buildChangeKey,
   formatChangeLabel,
   formatCommitScopeLabel,
   getDecisionKindLabel,
@@ -8,6 +9,7 @@ import {
   isAttentionDecision,
   isSettledDecision,
   normalizeShaForDisplay,
+  sortChangeGroupsCurrentFirst,
 } from "@decision-ledger/core";
 import type { ReactElement } from "react";
 
@@ -19,6 +21,11 @@ export interface DecisionListProps {
    * Decisions to render (already filtered by the app).
    */
   decisions: readonly Decision[];
+
+  /**
+   * Open page context, used to highlight and sort the current PR group.
+   */
+  currentContext?: CaptureContext | null;
 
   /**
    * Id of the decision currently open in the edit form, if any.
@@ -46,7 +53,7 @@ export interface DecisionListProps {
  * @param props - Component props
  */
 export function DecisionList(props: DecisionListProps): ReactElement {
-  const { decisions, editingId, onEdit, onDelete } = props;
+  const { decisions, currentContext, editingId, onEdit, onDelete } = props;
 
   if (decisions.length === 0) {
     return (
@@ -56,53 +63,76 @@ export function DecisionList(props: DecisionListProps): ReactElement {
     );
   }
 
-  const groups = groupDecisionsByChange(decisions);
+  const groups = sortChangeGroupsCurrentFirst(
+    groupDecisionsByChange(decisions),
+    currentContext,
+  );
+
+  const currentKey = currentContext
+    ? buildChangeKey(currentContext.change)
+    : null;
 
   return (
     <div className="dl-groups">
-      {groups.map((group) => (
-        <section key={group.key} className="dl-group">
-          <header className="dl-group__header">
-            <h3 className="dl-group__title">{group.title}</h3>
-            <p className="dl-group__host">{group.host}</p>
-            <p className="dl-group__chips" aria-label="Summary">
-              <span className="dl-chip">{group.counts.total} total</span>
-              {group.counts.needsAttention > 0 ? (
-                <span className="dl-chip dl-chip--attention">
-                  {group.counts.needsAttention} need attention
-                </span>
-              ) : null}
-              {group.counts.needsChanges > 0 ? (
-                <span className="dl-chip dl-chip--block">
-                  {group.counts.needsChanges} needs changes
-                </span>
-              ) : null}
-              {group.counts.settled > 0 ? (
-                <span className="dl-chip dl-chip--settled">
-                  {group.counts.settled} settled
-                </span>
-              ) : null}
-            </p>
-          </header>
+      {groups.map((group) => {
+        const isCurrent = currentKey !== null && group.key === currentKey;
+        const groupClass = isCurrent
+          ? "dl-group dl-group--current"
+          : "dl-group";
 
-          {group.sections.map((section) => (
-            <div key={section.key} className="dl-section">
-              <h4 className="dl-section__title">{section.title}</h4>
-              <ul className="dl-list">
-                {section.decisions.map((decision) => (
-                  <DecisionCard
-                    key={decision.id}
-                    decision={decision}
-                    isEditing={editingId === decision.id}
-                    onEdit={onEdit}
-                    onDelete={onDelete}
-                  />
-                ))}
-              </ul>
-            </div>
-          ))}
-        </section>
-      ))}
+        return (
+          <section
+            key={group.key}
+            className={groupClass}
+            aria-current={isCurrent ? "true" : undefined}
+          >
+            <header className="dl-group__header">
+              <div className="dl-group__title-row">
+                <h3 className="dl-group__title">{group.title}</h3>
+                {isCurrent ? (
+                  <span className="dl-chip dl-chip--current">This page</span>
+                ) : null}
+              </div>
+              <p className="dl-group__host">{group.host}</p>
+              <p className="dl-group__chips" aria-label="Summary">
+                <span className="dl-chip">{group.counts.total} total</span>
+                {group.counts.needsAttention > 0 ? (
+                  <span className="dl-chip dl-chip--attention">
+                    {group.counts.needsAttention} need attention
+                  </span>
+                ) : null}
+                {group.counts.needsChanges > 0 ? (
+                  <span className="dl-chip dl-chip--block">
+                    {group.counts.needsChanges} needs changes
+                  </span>
+                ) : null}
+                {group.counts.settled > 0 ? (
+                  <span className="dl-chip dl-chip--settled">
+                    {group.counts.settled} settled
+                  </span>
+                ) : null}
+              </p>
+            </header>
+
+            {group.sections.map((section) => (
+              <div key={section.key} className="dl-section">
+                <h4 className="dl-section__title">{section.title}</h4>
+                <ul className="dl-list">
+                  {section.decisions.map((decision) => (
+                    <DecisionCard
+                      key={decision.id}
+                      decision={decision}
+                      isEditing={editingId === decision.id}
+                      onEdit={onEdit}
+                      onDelete={onDelete}
+                    />
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </section>
+        );
+      })}
     </div>
   );
 }

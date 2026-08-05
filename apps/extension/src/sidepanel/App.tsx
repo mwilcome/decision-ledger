@@ -23,6 +23,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactElement,
 } from "react";
@@ -62,6 +63,12 @@ export function App(): ReactElement {
   const [error, setError] = useState<string | null>(null);
 
   /**
+   * Tracks whether the last poll had a PR/MR page, so we only reset the
+   * filter when entering or leaving a change page (not on every context tick).
+   */
+  const hadChangePageRef = useRef(false);
+
+  /**
    * Reloads notes from IndexedDB.
    */
   const refreshDecisions = useCallback(async (): Promise<void> => {
@@ -99,14 +106,25 @@ export function App(): ReactElement {
   }, [refreshContext, refreshDecisions]);
 
   /**
-   * Keeps the list scope valid when page context changes.
+   * Defaults the list filter to this pull request when you open a change page,
+   * and to everything saved when you leave change pages.
+   * Does not override a manual "Everything saved" choice while you stay on PRs.
    */
   useEffect(() => {
-    if (!context && scope !== "all") {
+    if (!context) {
+      hadChangePageRef.current = false;
       setScope("all");
       return;
     }
-    if (scope === "commit" && !context?.revision?.headSha) {
+
+    if (!hadChangePageRef.current) {
+      // Just landed on a PR/MR page: default to notes for this change.
+      setScope("change");
+      hadChangePageRef.current = true;
+      return;
+    }
+
+    if (scope === "commit" && !context.revision?.headSha) {
       setScope("change");
     }
   }, [context, scope]);
@@ -250,6 +268,7 @@ export function App(): ReactElement {
         />
         <DecisionList
           decisions={visibleDecisions}
+          currentContext={context}
           editingId={editing?.id}
           onEdit={handleEdit}
           onDelete={(d) => void handleDelete(d)}

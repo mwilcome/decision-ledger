@@ -192,14 +192,33 @@ body {
   background: color-mix(in srgb, CanvasText 2%, Canvas);
 }
 
+.dl-group--current {
+  border-color: color-mix(in srgb, #2563eb 65%, transparent);
+  background: color-mix(in srgb, #2563eb 8%, Canvas);
+  box-shadow: 0 0 0 1px color-mix(in srgb, #2563eb 25%, transparent);
+}
+
 .dl-group__header {
   margin-bottom: 8px;
+}
+
+.dl-group__title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
 }
 
 .dl-group__title {
   margin: 0;
   font-size: 0.95rem;
   word-break: break-word;
+}
+
+.dl-chip--current {
+  border-color: color-mix(in srgb, #2563eb 55%, transparent);
+  background: color-mix(in srgb, #2563eb 18%, Canvas);
+  font-weight: 600;
 }
 
 .dl-group__host {

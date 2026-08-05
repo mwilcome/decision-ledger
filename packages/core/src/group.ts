@@ -1,4 +1,4 @@
-import type { Decision } from "./types.js";
+import type { CaptureContext, Decision } from "./types.js";
 import { buildChangeKey } from "./context-key.js";
 import {
   countDecisionMarkers,
@@ -100,6 +100,34 @@ export function groupDecisionsByChange(
   });
 
   return groups;
+}
+
+/**
+ * Puts the group that matches the open page first; keeps relative order otherwise.
+ *
+ * @param groups - Grouped decisions (e.g. from {@link groupDecisionsByChange})
+ * @param context - Current page context, or null
+ * @returns New array sorted with the current PR/MR first when known
+ */
+export function sortChangeGroupsCurrentFirst(
+  groups: readonly DecisionChangeGroup[],
+  context: CaptureContext | null | undefined,
+): DecisionChangeGroup[] {
+  if (!context || groups.length < 2) {
+    return [...groups];
+  }
+
+  const currentKey = buildChangeKey(context.change);
+  const copy = [...groups];
+  copy.sort((a, b) => {
+    const aCurrent = a.key === currentKey ? 0 : 1;
+    const bCurrent = b.key === currentKey ? 0 : 1;
+    if (aCurrent !== bCurrent) {
+      return aCurrent - bCurrent;
+    }
+    return 0;
+  });
+  return copy;
 }
 
 /**

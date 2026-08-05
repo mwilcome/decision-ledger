@@ -27,6 +27,8 @@ export {
   buildRepoKey,
   decisionMatchesChange,
   decisionMatchesCommit,
+  isCurrentChange,
+  isCurrentCommit,
   isSameChange,
 } from "./context-key.js";
 
@@ -59,5 +61,8 @@ export {
 
 export { normalizeShaForDisplay } from "./sha.js";
 
-export { groupDecisionsByChange } from "./group.js";
+export {
+  groupDecisionsByChange,
+  sortChangeGroupsCurrentFirst,
+} from "./group.js";
 export type { DecisionChangeGroup, DecisionSection } from "./group.js";

@@ -98,6 +98,43 @@ export function decisionMatchesCommit(
 }
 
 /**
+ * Returns true when the open page context is the given change (PR/MR).
+ *
+ * @param context - Current page context, or null when not on a change page
+ * @param change - Change to compare
+ */
+export function isCurrentChange(
+  context: CaptureContext | null | undefined,
+  change: ChangeRef,
+): boolean {
+  if (!context) {
+    return false;
+  }
+  return isSameChange(context.change, change);
+}
+
+/**
+ * Returns true when the open page is the given change and commit SHA.
+ *
+ * @param context - Current page context
+ * @param change - Change to compare
+ * @param headSha - Commit SHA to compare
+ */
+export function isCurrentCommit(
+  context: CaptureContext | null | undefined,
+  change: ChangeRef,
+  headSha: string,
+): boolean {
+  if (!context?.revision?.headSha) {
+    return false;
+  }
+  if (!isCurrentChange(context, change)) {
+    return false;
+  }
+  return shasMatch(context.revision.headSha, headSha);
+}
+
+/**
  * Normalizes a SHA for use in keys (lowercase trim).
  *
  * @param sha - Raw SHA from a URL or page
