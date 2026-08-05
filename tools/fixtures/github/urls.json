@@ -18,5 +18,37 @@
       "number": 42,
       "page": "changes"
     }
+  },
+  {
+    "url": "https://github.com/acme/widgets/pull/42/commits",
+    "expected": {
+      "host": "github",
+      "owner": "acme",
+      "name": "widgets",
+      "number": 42,
+      "page": "commits"
+    }
+  },
+  {
+    "url": "https://github.com/mwilcome/decision-ledger/pull/1/changes/d3deb6ca5f357bc9c691cbb8720be2ded278026",
+    "expected": {
+      "host": "github",
+      "owner": "mwilcome",
+      "name": "decision-ledger",
+      "number": 1,
+      "page": "changes",
+      "headSha": "d3deb6ca5f357bc9c691cbb8720be2ded278026"
+    }
+  },
+  {
+    "url": "https://github.com/acme/widgets/pull/9/commits/abc1234",
+    "expected": {
+      "host": "github",
+      "owner": "acme",
+      "name": "widgets",
+      "number": 9,
+      "page": "commits",
+      "headSha": "abc1234"
+    }
   }
 ]
