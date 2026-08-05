@@ -1,4 +1,4 @@
-import type { CaptureContext } from "@decision-ledger/core";
+import type { CaptureContext, ChangeRef } from "@decision-ledger/core";
 import type { HostAdapter, HostCapabilities } from "@decision-ledger/host-api";
 import { parseGitHubPullRequestUrl } from "./parse.js";
 
@@ -67,6 +67,29 @@ export class GitHubAdapter implements HostAdapter {
       return null;
     }
     return parseGitHubPullRequestUrl(url);
+  }
+
+  /**
+   * Builds `https://github.com/owner/repo/pull/N` (or enterprise origin).
+   *
+   * @param change - Change identity
+   */
+  buildChangeUrl(change: ChangeRef): string {
+    const origin =
+      change.repo.instanceUrl?.replace(/\/$/, "") ?? "https://github.com";
+    return `${origin}/${change.repo.owner}/${change.repo.name}/pull/${change.number}`;
+  }
+
+  /**
+   * Builds the repo commit page (stable across GitHub UI variants).
+   *
+   * @param change - Change that owns the repo
+   * @param headSha - Commit SHA
+   */
+  buildCommitUrl(change: ChangeRef, headSha: string): string {
+    const origin =
+      change.repo.instanceUrl?.replace(/\/$/, "") ?? "https://github.com";
+    return `${origin}/${change.repo.owner}/${change.repo.name}/commit/${headSha.trim()}`;
   }
 
   /**

@@ -1,5 +1,6 @@
 import type {
   CaptureContext,
+  ChangeRef,
   ForgeReviewSnapshot,
   HostId,
 } from "@decision-ledger/core";
@@ -74,6 +75,22 @@ export interface HostAdapter {
    * @param doc - Optional document for light DOM reads
    */
   parseLocation(url: URL, doc?: Document): CaptureContext | null;
+
+  /**
+   * Builds the main pull request / merge request URL for a change.
+   * Uses `instanceUrl` when set (self-hosted); otherwise the public host.
+   *
+   * @param change - Change identity
+   */
+  buildChangeUrl(change: ChangeRef): string;
+
+  /**
+   * Builds a URL that opens a specific commit (repo commit page preferred).
+   *
+   * @param change - Change that contains the commit
+   * @param headSha - Commit SHA (short or full)
+   */
+  buildCommitUrl(change: ChangeRef, headSha: string): string;
 
   /**
    * Watches SPA navigation and DOM updates and reports context changes.

@@ -1,8 +1,9 @@
-import type { CaptureContext, Decision } from "@decision-ledger/core";
+import type { CaptureContext, ChangeRef, Decision } from "@decision-ledger/core";
 import {
   buildChangeKey,
   formatAbsoluteTime,
   formatChangeLabel,
+  formatChangeLabelWithHost,
   formatCommitScopeLabel,
   formatOpenWorkSummary,
   formatRelativeTime,
@@ -16,6 +17,7 @@ import {
   sortChangeGroupsCurrentFirst,
 } from "@decision-ledger/core";
 import { useEffect, useState, type ReactElement } from "react";
+import { ExternalLink } from "./ExternalLink.js";
 import type { DecisionListScope } from "./ListFilter.js";
 
 /**
@@ -67,6 +69,21 @@ export interface DecisionListProps {
    * Deletes settled notes older than 30 days (across the visible list).
    */
   onDeleteOldSettled?: () => void;
+
+  /**
+   * Builds a PR/MR URL for a change.
+   *
+   * @param change - Change identity
+   */
+  getChangeUrl?: (change: ChangeRef) => string | null;
+
+  /**
+   * Builds a commit URL.
+   *
+   * @param change - Change identity
+   * @param headSha - Commit SHA
+   */
+  getCommitUrl?: (change: ChangeRef, headSha: string) => string | null;
 }
 
 /**
@@ -84,6 +101,8 @@ export function DecisionList(props: DecisionListProps): ReactElement {
     onDelete,
     onSettleAllInGroup,
     onDeleteOldSettled,
+    getChangeUrl,
+    getCommitUrl,
   } = props;
 
   /**
@@ -177,11 +196,15 @@ export function DecisionList(props: DecisionListProps): ReactElement {
         const isCurrent = currentKey !== null && group.key === currentKey;
         const expanded = isGroupExpanded(group.key, isCurrent);
         const allInGroup = group.sections.flatMap((s) => s.decisions);
+        const sampleChange = allInGroup[0]?.context.change;
         const openSummary = formatOpenWorkSummary(allInGroup);
         const unfinished = allInGroup.filter(
           (d) => !isSettledDecision(d.status),
         );
         const total = allInGroup.length;
+        const changeHref = sampleChange
+          ? (getChangeUrl?.(sampleChange) ?? null)
+          : null;
 
         const groupClass = [
           "dl-group",
@@ -213,7 +236,18 @@ export function DecisionList(props: DecisionListProps): ReactElement {
                   {expanded ? "▼" : "▶"}
                 </span>
                 <span className="dl-group__title-row">
-                  <span className="dl-group__title">{group.title}</span>
+                  <span className="dl-group__title">
+                    {sampleChange ? (
+                      <ExternalLink
+                        href={changeHref}
+                        title={formatChangeLabelWithHost(sampleChange)}
+                      >
+                        {formatChangeLabel(sampleChange)}
+                      </ExternalLink>
+                    ) : (
+                      group.title
+                    )}
+                  </span>
                   {isCurrent ? (
                     <span className="dl-chip dl-chip--current">Here</span>
                   ) : null}
@@ -273,7 +307,12 @@ export function DecisionList(props: DecisionListProps): ReactElement {
                             {sectionOpen ? "▼" : "▶"}
                           </span>
                           <span className="dl-section__title">
-                            {section.title}
+                            {renderSectionTitle(
+                              section.key,
+                              section.title,
+                              sampleChange,
+                              getCommitUrl,
+                            )}
                             <span className="dl-section__count">
                               {" "}
                               ({section.decisions.length})
@@ -290,6 +329,8 @@ export function DecisionList(props: DecisionListProps): ReactElement {
                                 isEditing={editingId === decision.id}
                                 onEdit={onEdit}
                                 onDelete={onDelete}
+                                getChangeUrl={getChangeUrl}
+                                getCommitUrl={getCommitUrl}
                               />
                             ))}
                           </ul>
@@ -315,6 +356,31 @@ export function DecisionList(props: DecisionListProps): ReactElement {
         </details>
       ) : null}
     </div>
+  );
+}
+
+/**
+ * Renders a section title; commit sections become links when possible.
+ *
+ * @param sectionKey - `whole` or short SHA
+ * @param title - Display title
+ * @param change - Parent change, if known
+ * @param getCommitUrl - Optional commit URL builder
+ */
+function renderSectionTitle(
+  sectionKey: string,
+  title: string,
+  change: ChangeRef | undefined,
+  getCommitUrl?: (change: ChangeRef, headSha: string) => string | null,
+): ReactElement {
+  if (sectionKey === "whole" || !change) {
+    return <>{title}</>;
+  }
+  const href = getCommitUrl?.(change, sectionKey) ?? null;
+  return (
+    <ExternalLink href={href} title={sectionKey}>
+      {title}
+    </ExternalLink>
   );
 }
 
@@ -346,6 +412,16 @@ interface DecisionCardProps {
    * Delete handler.
    */
   onDelete: (decision: Decision) => void;
+
+  /**
+   * Optional change URL builder for crumbs.
+   */
+  getChangeUrl?: (change: ChangeRef) => string | null;
+
+  /**
+   * Optional commit URL builder for crumbs.
+   */
+  getCommitUrl?: (change: ChangeRef, headSha: string) => string | null;
 }
 
 /**
@@ -354,12 +430,25 @@ interface DecisionCardProps {
  * @param props - Card props
  */
 function DecisionCard(props: DecisionCardProps): ReactElement {
-  const { decision, showCrumb, isEditing, onEdit, onDelete } = props;
+  const {
+    decision,
+    showCrumb,
+    isEditing,
+    onEdit,
+    onDelete,
+    getChangeUrl,
+    getCommitUrl,
+  } = props;
   const attention = isAttentionDecision(decision.kind, decision.status);
   const settled = isSettledDecision(decision.status);
   const sha = decision.context.revision?.headSha;
   const absolute = formatAbsoluteTime(decision.updatedAt);
   const relative = formatRelativeTime(decision.updatedAt);
+  const changeHref = getChangeUrl?.(decision.context.change) ?? null;
+  const commitHref =
+    sha && getCommitUrl
+      ? getCommitUrl(decision.context.change, sha)
+      : null;
 
   const classNames = [
     "dl-list__item",
@@ -376,10 +465,19 @@ function DecisionCard(props: DecisionCardProps): ReactElement {
     <li className={classNames}>
       {showCrumb ? (
         <p className="dl-list__crumb">
-          {formatChangeLabel(decision.context.change)}
+          <ExternalLink
+            href={changeHref}
+            title={formatChangeLabelWithHost(decision.context.change)}
+          >
+            {formatChangeLabel(decision.context.change)}
+          </ExternalLink>
           <span className="dl-list__crumb-sep"> → </span>
-          {formatCommitScopeLabel(
-            sha ? normalizeShaForDisplay(sha) : undefined,
+          {sha ? (
+            <ExternalLink href={commitHref} title={sha}>
+              {formatCommitScopeLabel(normalizeShaForDisplay(sha))}
+            </ExternalLink>
+          ) : (
+            formatCommitScopeLabel(undefined)
           )}
         </p>
       ) : null}

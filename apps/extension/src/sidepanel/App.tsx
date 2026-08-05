@@ -2,7 +2,7 @@
  * Side panel: page context, form, grouped notes with review-friendly polish.
  */
 
-import type { CaptureContext, Decision } from "@decision-ledger/core";
+import type { CaptureContext, ChangeRef, Decision } from "@decision-ledger/core";
 import {
   buildChangeKey,
   createDecision,
@@ -11,6 +11,10 @@ import {
   isSettledDecision,
   updateDecision,
 } from "@decision-ledger/core";
+import {
+  resolveChangeUrl,
+  resolveCommitUrl,
+} from "@decision-ledger/host-api";
 import { sendMessage } from "@decision-ledger/shell";
 import { IndexedDbDecisionStore } from "@decision-ledger/storage";
 import {
@@ -322,13 +326,39 @@ export function App(): ReactElement {
 
   const formEnabled = editing !== null || context !== null;
 
+  /**
+   * Resolves a PR/MR URL for list and banner links.
+   *
+   * @param change - Change identity
+   */
+  const getChangeUrl = useCallback((change: ChangeRef): string | null => {
+    return resolveChangeUrl(null, change);
+  }, []);
+
+  /**
+   * Resolves a commit URL for list and banner links.
+   *
+   * @param change - Change identity
+   * @param headSha - Commit SHA
+   */
+  const getCommitUrl = useCallback(
+    (change: ChangeRef, headSha: string): string | null => {
+      return resolveCommitUrl(null, change, headSha);
+    },
+    [],
+  );
+
   return (
     <div className="dl-app">
       <header className="dl-app__header">
         <h1 className="dl-app__title">Decision Ledger</h1>
       </header>
 
-      <ContextBanner context={context} />
+      <ContextBanner
+        context={context}
+        getChangeUrl={getChangeUrl}
+        getCommitUrl={getCommitUrl}
+      />
 
       {error ? (
         <p className="dl-app__error" role="alert">
@@ -369,6 +399,8 @@ export function App(): ReactElement {
           onDelete={(d) => void handleDelete(d)}
           onSettleAllInGroup={(list) => void handleSettleAllInGroup(list)}
           onDeleteOldSettled={() => void handleDeleteOldSettled()}
+          getChangeUrl={getChangeUrl}
+          getCommitUrl={getCommitUrl}
         />
       </section>
     </div>

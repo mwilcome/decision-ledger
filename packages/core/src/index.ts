@@ -61,6 +61,7 @@ export {
   changeNoun,
   countDecisionMarkers,
   formatChangeLabel,
+  formatChangeLabelWithHost,
   formatCommitScopeLabel,
 } from "./display.js";
 

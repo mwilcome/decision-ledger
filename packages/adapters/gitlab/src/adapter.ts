@@ -1,4 +1,4 @@
-import type { CaptureContext } from "@decision-ledger/core";
+import type { CaptureContext, ChangeRef } from "@decision-ledger/core";
 import type { HostAdapter, HostCapabilities } from "@decision-ledger/host-api";
 import { parseGitLabMergeRequestUrl } from "./parse.js";
 
@@ -67,6 +67,31 @@ export class GitLabAdapter implements HostAdapter {
       return null;
     }
     return parseGitLabMergeRequestUrl(url);
+  }
+
+  /**
+   * Builds `https://gitlab.com/group/proj/-/merge_requests/N` (or self-hosted).
+   *
+   * @param change - Change identity
+   */
+  buildChangeUrl(change: ChangeRef): string {
+    const origin =
+      change.repo.instanceUrl?.replace(/\/$/, "") ?? "https://gitlab.com";
+    const projectPath = `${change.repo.owner}/${change.repo.name}`;
+    return `${origin}/${projectPath}/-/merge_requests/${change.number}`;
+  }
+
+  /**
+   * Builds the project commit page on GitLab.
+   *
+   * @param change - Change that owns the project
+   * @param headSha - Commit SHA
+   */
+  buildCommitUrl(change: ChangeRef, headSha: string): string {
+    const origin =
+      change.repo.instanceUrl?.replace(/\/$/, "") ?? "https://gitlab.com";
+    const projectPath = `${change.repo.owner}/${change.repo.name}`;
+    return `${origin}/${projectPath}/-/commit/${headSha.trim()}`;
   }
 
   /**

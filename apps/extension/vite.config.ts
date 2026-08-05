@@ -57,7 +57,6 @@ export default defineConfig({
       input: {
         sidepanel: resolve(rootDir, "src/sidepanel/index.html"),
         background: resolve(rootDir, "src/background.ts"),
-        content: resolve(rootDir, "src/content.ts"),
       },
       output: {
         entryFileNames: "[name].js",
@@ -67,3 +66,4 @@ export default defineConfig({
     },
   },
 });
+

@@ -4,11 +4,21 @@ import { normalizeShaForDisplay } from "./sha.js";
 
 /**
  * Builds a short label for a pull request or merge request.
- * Example: `PR #1 · mwilcome/decision-ledger`
+ * Example: `#2 · mwilcome/decision-ledger`
+ * (Host-unique with owner/repo; not "PR #2" alone.)
  *
  * @param change - Change identity
  */
 export function formatChangeLabel(change: ChangeRef): string {
+  return `#${change.number} · ${change.repo.owner}/${change.repo.name}`;
+}
+
+/**
+ * Short accessible description including host product (for title attributes).
+ *
+ * @param change - Change identity
+ */
+export function formatChangeLabelWithHost(change: ChangeRef): string {
   const noun = changeNoun(change.repo.host);
   return `${noun} #${change.number} · ${change.repo.owner}/${change.repo.name}`;
 }

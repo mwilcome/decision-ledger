@@ -52,6 +52,15 @@ body {
   word-break: break-word;
 }
 
+.dl-link {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.dl-link:hover {
+  text-decoration: underline;
+}
+
 .dl-banner__meta {
   margin: 2px 0 0;
   opacity: 0.8;

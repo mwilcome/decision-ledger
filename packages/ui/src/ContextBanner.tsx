@@ -1,9 +1,12 @@
-import type { CaptureContext } from "@decision-ledger/core";
+import type { CaptureContext, ChangeRef } from "@decision-ledger/core";
 import {
   formatChangeLabel,
+  formatChangeLabelWithHost,
   formatCommitScopeLabel,
+  normalizeShaForDisplay,
 } from "@decision-ledger/core";
 import type { ReactElement } from "react";
+import { ExternalLink } from "./ExternalLink.js";
 
 /**
  * Props for {@link ContextBanner}.
@@ -13,6 +16,21 @@ export interface ContextBannerProps {
    * Current page context, or null when the active tab is not a supported change.
    */
   context: CaptureContext | null;
+
+  /**
+   * Builds a PR/MR URL for the change, or null when unknown.
+   *
+   * @param change - Change identity
+   */
+  getChangeUrl?: (change: ChangeRef) => string | null;
+
+  /**
+   * Builds a commit URL, or null when unknown.
+   *
+   * @param change - Change identity
+   * @param headSha - Commit SHA
+   */
+  getCommitUrl?: (change: ChangeRef, headSha: string) => string | null;
 }
 
 /**
@@ -21,7 +39,7 @@ export interface ContextBannerProps {
  * @param props - Component props
  */
 export function ContextBanner(props: ContextBannerProps): ReactElement {
-  const { context } = props;
+  const { context, getChangeUrl, getCommitUrl } = props;
 
   if (!context) {
     return (
@@ -33,13 +51,33 @@ export function ContextBanner(props: ContextBannerProps): ReactElement {
   }
 
   const pageHint = pageRoleHint(context.page);
-  const scope = formatCommitScopeLabel(context.revision?.headSha);
+  const sha = context.revision?.headSha;
+  const changeHref = getChangeUrl?.(context.change) ?? null;
+  const commitHref =
+    sha && getCommitUrl ? getCommitUrl(context.change, sha) : null;
+  const scopeLabel = formatCommitScopeLabel(sha);
 
   return (
     <section className="dl-banner" aria-live="polite">
-      <p className="dl-banner__title">{formatChangeLabel(context.change)}</p>
+      <p className="dl-banner__title">
+        <ExternalLink
+          href={changeHref}
+          title={formatChangeLabelWithHost(context.change)}
+        >
+          {formatChangeLabel(context.change)}
+        </ExternalLink>
+      </p>
       <p className="dl-banner__meta">
-        {scope}
+        {sha ? (
+          <ExternalLink
+            href={commitHref}
+            title={sha}
+          >
+            {scopeLabel}
+          </ExternalLink>
+        ) : (
+          scopeLabel
+        )}
         {pageHint ? ` · ${pageHint}` : ""}
       </p>
     </section>

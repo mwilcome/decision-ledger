@@ -6,6 +6,9 @@
 export { ContextBanner } from "./ContextBanner.js";
 export type { ContextBannerProps } from "./ContextBanner.js";
 
+export { ExternalLink } from "./ExternalLink.js";
+export type { ExternalLinkProps } from "./ExternalLink.js";
+
 export { DecisionForm } from "./DecisionForm.js";
 export type { DecisionFormProps, DecisionFormValues } from "./DecisionForm.js";
 
