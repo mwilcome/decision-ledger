@@ -1,0 +1,379 @@
+/**
+ * Shared domain types for Decision Ledger.
+ * These types are host-neutral: adapters map each Git site into this shape.
+ */
+
+/**
+ * Logical id for a Git hosting product family.
+ * Built-in values cover common hosts; any string is allowed for future adapters.
+ */
+export type HostId =
+  | "github"
+  | "gitlab"
+  | "bitbucket"
+  | "azuredevops"
+  | "gitea"
+  | string;
+
+/**
+ * Identifies a repository on a Git host.
+ */
+export interface RepoRef {
+  /**
+   * Git product family (for example `"github"` or `"gitlab"`).
+   */
+  host: HostId;
+
+  /**
+   * Origin of a self-hosted instance (scheme, host, optional port).
+   * Omit for the public default host of that product (for example github.com).
+   * Example: `"https://gitlab.example.com"`.
+   */
+  instanceUrl?: string;
+
+  /**
+   * Owner, group, workspace, or first path segment(s) that identify the project namespace.
+   * Nested GitLab groups may be a path like `"group/subgroup"`.
+   */
+  owner: string;
+
+  /**
+   * Repository or project name.
+   */
+  name: string;
+}
+
+/**
+ * Identifies one change request (pull request, merge request, or equivalent).
+ */
+export interface ChangeRef {
+  /**
+   * Repository that contains the change.
+   */
+  repo: RepoRef;
+
+  /**
+   * Number shown in the UI and URL.
+   * On GitLab this is the project-scoped iid, not the global database id.
+   */
+  number: number;
+}
+
+/**
+ * Optional git commit range for the change when known.
+ */
+export interface RevisionRef {
+  /**
+   * Tip commit SHA of the change branch.
+   */
+  headSha: string;
+
+  /**
+   * Base commit SHA the change is compared against, when known.
+   */
+  baseSha?: string;
+}
+
+/**
+ * Optional selected lines on a file in the diff view.
+ */
+export interface SelectionRef {
+  /**
+   * Repository-relative file path.
+   */
+  path: string;
+
+  /**
+   * First selected line number (1-based, as shown in the diff).
+   */
+  startLine: number;
+
+  /**
+   * Last selected line number (1-based, inclusive).
+   */
+  endLine: number;
+
+  /**
+   * Which side of the diff the selection came from, when known.
+   */
+  side?: "left" | "right";
+
+  /**
+   * Short text excerpt of the selection, when captured.
+   */
+  excerpt?: string;
+}
+
+/**
+ * Optional pointer to a discussion thread on the change.
+ */
+export interface ThreadRef {
+  /**
+   * Host-specific thread or discussion id as a string.
+   */
+  threadId: string;
+
+  /**
+   * File path associated with the thread, when applicable.
+   */
+  filePath?: string;
+}
+
+/**
+ * Which kind of change page the user is on, mapped to a common set of roles.
+ */
+export type PageRole =
+  | "overview"
+  | "changes"
+  | "commits"
+  | "checks"
+  | "unknown";
+
+/**
+ * Human-facing presentation of a change, learned from the page (not forge API).
+ */
+export interface ChangePresentation {
+  /**
+   * Pull/merge request title when read from the page or tab.
+   */
+  title?: string;
+
+  /**
+   * Source branch name when visible on the page.
+   */
+  sourceBranch?: string;
+
+  /**
+   * Target branch name when visible on the page.
+   */
+  targetBranch?: string;
+}
+
+/**
+ * Snapshot of where the user was when a decision was captured or when context was last observed.
+ */
+export interface CaptureContext {
+  /**
+   * The change (PR/MR) currently in view.
+   */
+  change: ChangeRef;
+
+  /**
+   * Commit SHAs for the change when known.
+   */
+  revision?: RevisionRef;
+
+  /**
+   * Selected diff region when the user captured from a selection.
+   */
+  selection?: SelectionRef;
+
+  /**
+   * Discussion thread when capture was tied to a thread.
+   */
+  thread?: ThreadRef;
+
+  /**
+   * Normalized page role for the current tab view.
+   */
+  page: PageRole;
+
+  /**
+   * Full page URL at capture time.
+   */
+  sourceUrl: string;
+
+  /**
+   * ISO-8601 timestamp for when this context was built.
+   */
+  capturedAt: string;
+
+  /**
+   * Optional title/branches learned from the open page.
+   */
+  presentation?: ChangePresentation;
+}
+
+/**
+ * Cached display metadata for a change, keyed by {@link buildChangeKey}.
+ * Learned while visiting the change page; not a forge API cache.
+ */
+export interface ChangeMeta {
+  /**
+   * Stable change key (host | instance | owner | name | number).
+   */
+  changeKey: string;
+
+  /**
+   * Last known PR/MR title from the page.
+   */
+  title?: string;
+
+  /**
+   * Optional user-chosen short name (future UI).
+   */
+  nickname?: string;
+
+  /**
+   * Source branch when last seen.
+   */
+  sourceBranch?: string;
+
+  /**
+   * Target branch when last seen.
+   */
+  targetBranch?: string;
+
+  /**
+   * ISO-8601 time of last meta update.
+   */
+  updatedAt: string;
+}
+
+/**
+ * Lifecycle status of a user decision.
+ */
+export type DecisionStatus =
+  | "draft"
+  | "decided"
+  | "open_question"
+  | "superseded";
+
+/**
+ * Category of note the reviewer is recording.
+ * Stored values are stable ids; UI shows plain-language labels separately.
+ *
+ * Four types only: general note, question, accepted risk, blocker.
+ * Older values (`follow_up`, `approve_with_notes`) are mapped on load.
+ */
+export type DecisionKind = "note" | "question" | "risk" | "block";
+
+/**
+ * One user-authored ledger entry tied to a capture context.
+ */
+export interface Decision {
+  /**
+   * Stable unique id for this decision (generated by the app).
+   */
+  id: string;
+
+  /**
+   * Where the user was when this decision was created or last rebound.
+   */
+  context: CaptureContext;
+
+  /**
+   * Lifecycle status of the decision.
+   */
+  status: DecisionStatus;
+
+  /**
+   * Category of the decision.
+   */
+  kind: DecisionKind;
+
+  /**
+   * Free-text body written by the reviewer.
+   */
+  body: string;
+
+  /**
+   * User-defined labels for filtering and search.
+   */
+  tags: string[];
+
+  /**
+   * Id of an older decision that this one replaces, when status is superseded linkage is used.
+   */
+  supersedes?: string;
+
+  /**
+   * ISO-8601 creation time.
+   */
+  createdAt: string;
+
+  /**
+   * ISO-8601 last update time.
+   */
+  updatedAt: string;
+}
+
+/**
+ * Input required to create a new decision (id and timestamps are assigned by core helpers).
+ */
+export interface NewDecisionInput {
+  /**
+   * Capture context for the new decision.
+   */
+  context: CaptureContext;
+
+  /**
+   * Initial status. Defaults to `"draft"` when omitted by helpers.
+   */
+  status?: DecisionStatus;
+
+  /**
+   * Category of the decision.
+   */
+  kind: DecisionKind;
+
+  /**
+   * Free-text body.
+   */
+  body: string;
+
+  /**
+   * Optional tags. Defaults to an empty list when omitted by helpers.
+   */
+  tags?: string[];
+
+  /**
+   * Optional id of a decision this one supersedes.
+   */
+  supersedes?: string;
+}
+
+/**
+ * Optional view of the host's own review or CI state (not a Decision).
+ */
+export interface ForgeReviewSnapshot {
+  /**
+   * Change this snapshot describes.
+   */
+  change: ChangeRef;
+
+  /**
+   * Commit SHA the snapshot was taken against, when known.
+   */
+  atSha?: string;
+
+  /**
+   * Reviewer's formal state on the host, when known.
+   */
+  myState?: "approved" | "changes_requested" | "commented" | "unreviewed";
+
+  /**
+   * Summary of approval rules or counts, when the host provides one.
+   */
+  approvalSummary?: {
+    /**
+     * Whether approvals required by the host are satisfied.
+     */
+    satisfied?: boolean;
+
+    /**
+     * Number of approvals recorded, when known.
+     */
+    count?: number;
+  };
+
+  /**
+   * Coarse CI or pipeline state on the change page, when known.
+   */
+  ciSummary?: {
+    /**
+     * Overall check state.
+     */
+    state: "pending" | "success" | "failure" | "unknown";
+  };
+}
