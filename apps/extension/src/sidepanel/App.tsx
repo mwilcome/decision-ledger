@@ -429,10 +429,6 @@ export function App(): ReactElement {
 
   return (
     <div className="dl-app">
-      <header className="dl-app__header">
-        <h1 className="dl-app__title">Decision Ledger</h1>
-      </header>
-
       <ContextBanner
         context={context}
         changeTitle={openChangeTitle}

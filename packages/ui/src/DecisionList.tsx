@@ -36,7 +36,7 @@ export interface DecisionListProps {
   currentContext?: CaptureContext | null;
 
   /**
-   * Active list filter. When `"all"`, cards may show a short location crumb.
+   * Active list filter (reserved; cards no longer show a location crumb).
    */
   listScope?: DecisionListScope;
 
@@ -103,7 +103,6 @@ export function DecisionList(props: DecisionListProps): ReactElement {
   const {
     decisions,
     currentContext,
-    listScope = "change",
     editingId,
     onEdit,
     onDelete,
@@ -136,8 +135,6 @@ export function DecisionList(props: DecisionListProps): ReactElement {
   const currentKey = currentContext
     ? buildChangeKey(currentContext.change)
     : null;
-
-  const showCardCrumb = listScope === "all";
 
   useEffect(() => {
     if (!currentKey) {
@@ -283,10 +280,10 @@ export function DecisionList(props: DecisionListProps): ReactElement {
                 <div className="dl-group__actions">
                   <button
                     type="button"
-                    className="dl-list__btn"
+                    className="dl-list__btn dl-list__btn--quiet"
                     onClick={() => onSettleAllInGroup(unfinished)}
                   >
-                    Settle all open
+                    Settle open
                   </button>
                 </div>
               ) : null}
@@ -338,7 +335,7 @@ export function DecisionList(props: DecisionListProps): ReactElement {
                               <DecisionCard
                                 key={decision.id}
                                 decision={decision}
-                                showCrumb={showCardCrumb}
+                                showCrumb={false}
                                 isEditing={editingId === decision.id}
                                 onEdit={onEdit}
                                 onDelete={onDelete}

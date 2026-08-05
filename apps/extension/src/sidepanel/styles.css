@@ -55,17 +55,6 @@ body {
   color: var(--dl-text);
 }
 
-.dl-app__header {
-  margin: 0;
-}
-
-.dl-app__title {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 650;
-  color: var(--dl-text);
-}
-
 .dl-banner {
   border: 1px solid var(--dl-border);
   border-radius: 6px;
@@ -226,27 +215,23 @@ body {
   color: var(--dl-text);
 }
 
-.dl-filter__hint {
-  margin: 2px 0 0;
-  font-size: 0.7rem;
-  color: var(--dl-text-muted);
-}
-
 .dl-filter__link {
-  margin: 2px 0 0;
+  margin: 0;
+  margin-left: auto;
   padding: 0;
   border: none;
   background: none;
-  color: var(--dl-link);
+  color: var(--dl-text-muted);
   font: inherit;
   font-size: 0.75rem;
   text-align: left;
   cursor: pointer;
   text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .dl-filter__link:hover {
-  color: var(--dl-link-hover);
+  color: var(--dl-text);
 }
 
 .dl-group__summary {
@@ -403,9 +388,9 @@ body {
   box-shadow: 0 0 0 1px rgba(9, 105, 218, 0.15);
 }
 
+/* Status is edge + chip only; cards stay white. */
 .dl-list__item--attention {
   border-left: 3px solid var(--dl-orange);
-  background: var(--dl-orange-bg);
 }
 
 .dl-list__item--waiting {
@@ -414,16 +399,15 @@ body {
 
 .dl-list__item--block {
   border-left: 3px solid var(--dl-red);
-  background: var(--dl-red-bg);
 }
 
 .dl-list__item--settled {
-  border-left: 3px solid var(--dl-green);
-  background: var(--dl-green-bg);
+  border-left: 3px solid var(--dl-border);
 }
 
 .dl-list__item--settled .dl-list__body {
   font-weight: 400;
+  color: var(--dl-text-muted);
 }
 
 .dl-list__crumb {
@@ -464,15 +448,15 @@ body {
 
 .dl-list__status--active {
   border-color: var(--dl-orange-border);
-  background: var(--dl-orange-bg);
-  color: var(--dl-text);
+  background: transparent;
+  color: var(--dl-text-muted);
 }
 
 .dl-list__status--settled {
   font-weight: 500;
-  border-color: var(--dl-green-border);
-  background: var(--dl-green-bg);
-  color: var(--dl-text);
+  border-color: var(--dl-border);
+  background: transparent;
+  color: var(--dl-text-subtle);
 }
 
 .dl-list__body {
@@ -517,6 +501,21 @@ body {
 .dl-list__btn:hover {
   background: var(--dl-bg-elevated);
   border-color: var(--dl-text-subtle);
+}
+
+.dl-list__btn--quiet {
+  border: none;
+  background: transparent;
+  color: var(--dl-text-muted);
+  padding: 2px 4px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.dl-list__btn--quiet:hover {
+  background: transparent;
+  border: none;
+  color: var(--dl-text);
 }
 
 .dl-list__btn--danger {

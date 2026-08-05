@@ -53,7 +53,14 @@ export function ListFilter(props: ListFilterProps): ReactElement {
           />
           This PR
         </label>
-        <label className="dl-filter__option">
+        <label
+          className="dl-filter__option"
+          title={
+            commitAvailable
+              ? undefined
+              : "Open a single commit in the PR to filter by commit"
+          }
+        >
           <input
             type="radio"
             name="dl-scope"
@@ -72,19 +79,16 @@ export function ListFilter(props: ListFilterProps): ReactElement {
           />
           All
         </label>
+        {scope === "all" && changeAvailable ? (
+          <button
+            type="button"
+            className="dl-filter__link"
+            onClick={() => onChange("change")}
+          >
+            This page only
+          </button>
+        ) : null}
       </div>
-      {!commitAvailable ? (
-        <p className="dl-filter__hint">Pick a commit to filter by commit.</p>
-      ) : null}
-      {scope === "all" && changeAvailable ? (
-        <button
-          type="button"
-          className="dl-filter__link"
-          onClick={() => onChange("change")}
-        >
-          This page only
-        </button>
-      ) : null}
     </div>
   );
 }

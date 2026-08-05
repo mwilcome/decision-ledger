@@ -16,8 +16,6 @@ Write down questions, risks, blockers, and decisions as you go. Notes stay on **
 - Click the PR or commit label to open it in a new tab
 - Switch browser tabs and the panel follows the active PR
 
-Colors help at a glance: open items lean orange; settled items lean green.
-
 ---
 
 ## What works today
