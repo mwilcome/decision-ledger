@@ -1,0 +1,51 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Builds & outputs
+dist/
+build/
+.output/
+.wxt/
+*.local
+
+# Extension packages (generated)
+*.zip
+*.xpi
+*.crx
+web-ext-artifacts/
+
+# Env & secrets
+.env
+.env.*
+!.env.example
+
+# Logs & caches
+logs/
+*.log
+.npm
+.eslintcache
+.turbo
+.cache/
+.parcel-cache/
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+
+# IDE / OS
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.swp
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# TypeScript
+*.tsbuildinfo
+
+# Optional local tooling
+.vercel
+.netlify
