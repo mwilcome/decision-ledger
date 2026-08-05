@@ -12,8 +12,9 @@ Decision Ledger saves those personal calls next to the change you are looking at
 
 - Browser extension for Chrome-based browsers and Firefox
 - Shared data types for all sites; one adapter per site (GitHub and GitLab first)
-- Side panel to create, search, edit, and export decisions
-- Storage on the device; export to Markdown or JSON
+- Side panel for create, read, update, and delete
+- Local IndexedDB storage on the device
+- List filter: whole change, current commit, or all saved
 - Decision statuses: `draft`, `decided`, `open_question`, `superseded`
 
 **Not included**

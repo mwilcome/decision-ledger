@@ -10,10 +10,10 @@ npm, TypeScript (strict mode), Vite, React, browser extension using Manifest V3.
 |------|-----|
 | Content script | Code that runs on the Git site page. Picks the right adapter and sends page context. |
 | Background script | Runs in the extension. Passes messages, handles permissions, remembers current context. |
-| UI (React) | Side panel: create, edit, search, and export decisions. |
+| UI (React) | Side panel: create, read, update, delete decisions. |
 | `packages/core` | Shared types and decision logic. Does not use browser APIs. |
 | `packages/adapters/*` | One package per Git site: read URL and page, build context. |
-| `packages/storage` | Save and load decisions (for example IndexedDB in the browser). |
+| `packages/storage` | DecisionStore port; IndexedDB implementation for local persistence. |
 | `packages/shell` | Small differences between browsers (side panel vs popup). |
 
 ## Packages (folders)
@@ -34,25 +34,39 @@ tools/fixtures
 
 The main types (`RepoRef`, `ChangeRef`, `CaptureContext`, `Decision`, `HostAdapter`) are listed in the root [README.md](../README.md).
 
-**Context key** is a string that groups decisions for one change:
+**Change key** groups decisions for one PR/MR:
 
 ```text
-host | instanceUrl | owner | name | number [| headSha]
+host | instanceUrl | owner | name | number
 ```
+
+**Commit key** adds the commit SHA when a decision is about one commit on that change:
+
+```text
+host | instanceUrl | owner | name | number | headSha
+```
+
+When `CaptureContext.revision.headSha` is set at save time, the decision is commit-scoped. The side panel can filter by whole change, current commit, or all saved items.
 
 For a company-hosted GitLab or GitHub, always include `instanceUrl` so two servers with the same project path stay separate.
 
-**Decision statuses:** start as `draft`, then `decided` or `open_question`. Later a decision can become `superseded` and point at a newer decision id.
+**Decision kinds** (stored id → UI label): `note` (Note), `risk` (Accepted risk), `question` (Open question), `follow_up` (Follow-up), `block` (Needs changes), `approve_with_notes` (OK, minor notes).
+
+**Decision statuses:** `draft`, `decided`, `open_question`, `superseded`.
 
 The site’s own approval or CI status can be shown if we load it. It is separate from a `Decision` record.
+
+## Persistence
+
+Decisions are stored in **IndexedDB** inside the extension (browser profile on this machine). The side panel uses `IndexedDbDecisionStore` through the `DecisionStore` interface. There is no remote server.
 
 ## What happens when you save a decision
 
 1. You open a pull request or merge request page.
 2. The adapter builds a `CaptureContext` from the URL (and from the page HTML if it can).
-3. You write a decision in the side panel.
-4. Core checks the data; storage saves it.
-5. Export can write Markdown or JSON when you ask.
+3. You create or update a decision in the side panel (kind, status, body).
+4. Core builds or updates the `Decision` record.
+5. IndexedDB saves it. Delete removes it after a confirm dialog.
 
 ## Permissions
 

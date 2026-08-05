@@ -22,8 +22,11 @@ export type {
 
 export {
   buildChangeKey,
+  buildCommitKey,
   buildContextKey,
   buildRepoKey,
+  decisionMatchesChange,
+  decisionMatchesCommit,
   isSameChange,
 } from "./context-key.js";
 
@@ -33,3 +36,10 @@ export {
   markSuperseded,
   updateDecision,
 } from "./decision.js";
+
+export {
+  DECISION_KIND_OPTIONS,
+  DECISION_STATUS_OPTIONS,
+  getDecisionKindLabel,
+  getDecisionStatusLabel,
+} from "./labels.js";

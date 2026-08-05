@@ -27,7 +27,9 @@ These files describe the product and how the code is organized. Notes for a spec
 Works in Chrome-based browsers and Firefox. It should:
 
 - See which pull request or merge request is open
-- Let you create, edit, search, and export decisions linked to that change
+- Let you create, read, update, and delete decisions linked to that change
+- Store decisions locally in IndexedDB (this browser profile)
+- Filter the list by whole change, current commit, or all saved
 - Put site-specific code in adapters only
 - Still work using only the page URL if the page HTML is hard to read
 
@@ -68,12 +70,12 @@ interface CaptureContext {
 
 type DecisionStatus = "draft" | "decided" | "open_question" | "superseded";
 type DecisionKind =
-  | "risk"
-  | "approve_with_nits"
-  | "block"
-  | "question"
   | "note"
-  | "follow_up";
+  | "risk"
+  | "question"
+  | "follow_up"
+  | "block"
+  | "approve_with_notes";
 
 interface Decision {
   id: string;

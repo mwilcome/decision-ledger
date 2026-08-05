@@ -180,14 +180,15 @@ export type DecisionStatus =
 
 /**
  * Category of decision the reviewer is recording.
+ * Stored values are stable ids; UI shows plain-language labels separately.
  */
 export type DecisionKind =
-  | "risk"
-  | "approve_with_nits"
-  | "block"
-  | "question"
   | "note"
-  | "follow_up";
+  | "risk"
+  | "question"
+  | "follow_up"
+  | "block"
+  | "approve_with_notes";
 
 /**
  * One user-authored ledger entry tied to a capture context.

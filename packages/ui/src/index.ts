@@ -11,3 +11,6 @@ export type { DecisionFormProps, DecisionFormValues } from "./DecisionForm.js";
 
 export { DecisionList } from "./DecisionList.js";
 export type { DecisionListProps } from "./DecisionList.js";
+
+export { ListFilter } from "./ListFilter.js";
+export type { DecisionListScope, ListFilterProps } from "./ListFilter.js";

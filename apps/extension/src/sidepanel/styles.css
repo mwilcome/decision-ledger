@@ -84,6 +84,17 @@ body {
   color: FieldText;
 }
 
+.dl-form__mode {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.dl-form__actions {
+  display: flex;
+  gap: 8px;
+}
+
 .dl-form__submit {
   font: inherit;
   padding: 8px 10px;
@@ -97,6 +108,40 @@ body {
 .dl-form__submit:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.dl-form__cancel {
+  font: inherit;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, CanvasText 25%, transparent);
+  cursor: pointer;
+  background: transparent;
+  color: inherit;
+}
+
+.dl-app__error {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: color-mix(in srgb, #dc2626 15%, Canvas);
+  color: inherit;
+  font-size: 0.85rem;
+}
+
+.dl-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+}
+
+.dl-filter__option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
 }
 
 .dl-list {
@@ -114,6 +159,10 @@ body {
   padding: 8px 10px;
 }
 
+.dl-list__item--editing {
+  border-color: #2563eb;
+}
+
 .dl-list__header {
   display: flex;
   justify-content: space-between;
@@ -128,8 +177,31 @@ body {
 }
 
 .dl-list__footer {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   font-size: 0.75rem;
-  opacity: 0.7;
+  opacity: 0.9;
+}
+
+.dl-list__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.dl-list__btn {
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid color-mix(in srgb, CanvasText 25%, transparent);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.dl-list__btn--danger {
+  border-color: color-mix(in srgb, #dc2626 50%, transparent);
 }
 
 .dl-list-empty {

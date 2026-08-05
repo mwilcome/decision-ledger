@@ -1,14 +1,23 @@
-import type { DecisionKind } from "@decision-ledger/core";
-import { useState, type FormEvent, type ReactElement } from "react";
+import type { DecisionKind, DecisionStatus } from "@decision-ledger/core";
+import {
+  DECISION_KIND_OPTIONS,
+  DECISION_STATUS_OPTIONS,
+} from "@decision-ledger/core";
+import { useEffect, useState, type FormEvent, type ReactElement } from "react";
 
 /**
- * Values submitted when the user saves a new decision draft.
+ * Values submitted when the user creates or updates a decision.
  */
 export interface DecisionFormValues {
   /**
    * Decision category chosen by the user.
    */
   kind: DecisionKind;
+
+  /**
+   * Lifecycle status chosen by the user.
+   */
+  status: DecisionStatus;
 
   /**
    * Free-text body of the decision.
@@ -21,46 +30,65 @@ export interface DecisionFormValues {
  */
 export interface DecisionFormProps {
   /**
-   * When false, the form is disabled (no active change context).
+   * When false, the form is disabled (no active change context for create).
    */
   enabled: boolean;
 
   /**
+   * `"create"` starts empty (with defaults). `"edit"` loads {@link initialValues}.
+   */
+  mode: "create" | "edit";
+
+  /**
+   * Starting field values when editing, or optional defaults when creating.
+   */
+  initialValues?: Partial<DecisionFormValues>;
+
+  /**
    * Called with validated form values on submit.
    *
-   * @param values - Kind and body entered by the user
+   * @param values - Kind, status, and body entered by the user
    */
   onSubmit: (values: DecisionFormValues) => void;
+
+  /**
+   * Called when the user cancels edit mode. Hidden in create mode when omitted.
+   */
+  onCancel?: () => void;
 }
 
 /**
- * Supported kind options shown in the form select.
- */
-const KIND_OPTIONS: { value: DecisionKind; label: string }[] = [
-  { value: "note", label: "Note" },
-  { value: "risk", label: "Risk" },
-  { value: "question", label: "Question" },
-  { value: "follow_up", label: "Follow-up" },
-  { value: "block", label: "Block" },
-  { value: "approve_with_nits", label: "Approve with nits" },
-];
-
-/**
- * Simple form to capture a new decision draft.
+ * Form to create a new decision or edit an existing one.
  *
  * @param props - Component props
  */
 export function DecisionForm(props: DecisionFormProps): ReactElement {
-  const { enabled, onSubmit } = props;
+  const { enabled, mode, initialValues, onSubmit, onCancel } = props;
 
   /** Selected decision kind. */
-  const [kind, setKind] = useState<DecisionKind>("note");
+  const [kind, setKind] = useState<DecisionKind>(
+    initialValues?.kind ?? "note",
+  );
+
+  /** Selected lifecycle status. */
+  const [status, setStatus] = useState<DecisionStatus>(
+    initialValues?.status ?? "draft",
+  );
 
   /** Body text. */
-  const [body, setBody] = useState("");
+  const [body, setBody] = useState(initialValues?.body ?? "");
 
   /**
-   * Validates and submits the form, then clears the body.
+   * Resets fields when switching into edit mode or when initial values change.
+   */
+  useEffect(() => {
+    setKind(initialValues?.kind ?? "note");
+    setStatus(initialValues?.status ?? "draft");
+    setBody(initialValues?.body ?? "");
+  }, [mode, initialValues?.kind, initialValues?.status, initialValues?.body]);
+
+  /**
+   * Validates and submits the form. Clears the body after a successful create.
    *
    * @param event - Form submit event
    */
@@ -70,12 +98,21 @@ export function DecisionForm(props: DecisionFormProps): ReactElement {
     if (!enabled || !trimmed) {
       return;
     }
-    onSubmit({ kind, body: trimmed });
-    setBody("");
+    onSubmit({ kind, status, body: trimmed });
+    if (mode === "create") {
+      setBody("");
+      setKind("note");
+      setStatus("draft");
+    }
   }
 
   return (
     <form className="dl-form" onSubmit={handleSubmit}>
+      {mode === "edit" ? (
+        <p className="dl-form__mode" aria-live="polite">
+          Editing decision
+        </p>
+      ) : null}
       <label className="dl-form__label">
         Kind
         <select
@@ -84,7 +121,22 @@ export function DecisionForm(props: DecisionFormProps): ReactElement {
           disabled={!enabled}
           onChange={(e) => setKind(e.target.value as DecisionKind)}
         >
-          {KIND_OPTIONS.map((option) => (
+          {DECISION_KIND_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="dl-form__label">
+        Status
+        <select
+          className="dl-form__select"
+          value={status}
+          disabled={!enabled}
+          onChange={(e) => setStatus(e.target.value as DecisionStatus)}
+        >
+          {DECISION_STATUS_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
             </option>
@@ -102,9 +154,20 @@ export function DecisionForm(props: DecisionFormProps): ReactElement {
           onChange={(e) => setBody(e.target.value)}
         />
       </label>
-      <button className="dl-form__submit" type="submit" disabled={!enabled}>
-        Save draft
-      </button>
+      <div className="dl-form__actions">
+        <button className="dl-form__submit" type="submit" disabled={!enabled}>
+          {mode === "edit" ? "Update" : "Save"}
+        </button>
+        {mode === "edit" && onCancel ? (
+          <button
+            className="dl-form__cancel"
+            type="button"
+            onClick={onCancel}
+          >
+            Cancel
+          </button>
+        ) : null}
+      </div>
     </form>
   );
 }
