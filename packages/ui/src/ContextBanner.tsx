@@ -1,6 +1,6 @@
 import type { CaptureContext, ChangeRef } from "@decision-ledger/core";
 import {
-  formatChangeLabel,
+  formatChangeDisplayLabel,
   formatChangeLabelWithHost,
   formatCommitScopeLabel,
   normalizeShaForDisplay,
@@ -16,6 +16,11 @@ export interface ContextBannerProps {
    * Current page context, or null when the active tab is not a supported change.
    */
   context: CaptureContext | null;
+
+  /**
+   * Optional cached title/nickname for the open change.
+   */
+  changeTitle?: string | null;
 
   /**
    * Builds a PR/MR URL for the change, or null when unknown.
@@ -39,7 +44,7 @@ export interface ContextBannerProps {
  * @param props - Component props
  */
 export function ContextBanner(props: ContextBannerProps): ReactElement {
-  const { context, getChangeUrl, getCommitUrl } = props;
+  const { context, changeTitle, getChangeUrl, getCommitUrl } = props;
 
   if (!context) {
     return (
@@ -56,23 +61,24 @@ export function ContextBanner(props: ContextBannerProps): ReactElement {
   const commitHref =
     sha && getCommitUrl ? getCommitUrl(context.change, sha) : null;
   const scopeLabel = formatCommitScopeLabel(sha);
+  const liveTitle =
+    context.presentation?.title?.trim() || changeTitle?.trim() || undefined;
+  const label = formatChangeDisplayLabel(context.change, {
+    title: liveTitle,
+  });
+  const fullTitle =
+    liveTitle || formatChangeLabelWithHost(context.change);
 
   return (
     <section className="dl-banner" aria-live="polite">
       <p className="dl-banner__title">
-        <ExternalLink
-          href={changeHref}
-          title={formatChangeLabelWithHost(context.change)}
-        >
-          {formatChangeLabel(context.change)}
+        <ExternalLink href={changeHref} title={fullTitle}>
+          {label}
         </ExternalLink>
       </p>
       <p className="dl-banner__meta">
         {sha ? (
-          <ExternalLink
-            href={commitHref}
-            title={sha}
-          >
+          <ExternalLink href={commitHref} title={sha}>
             {scopeLabel}
           </ExternalLink>
         ) : (

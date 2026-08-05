@@ -1,6 +1,11 @@
-import type { CaptureContext, ChangeRef } from "@decision-ledger/core";
+import type {
+  CaptureContext,
+  ChangePresentation,
+  ChangeRef,
+} from "@decision-ledger/core";
 import type { HostAdapter, HostCapabilities } from "@decision-ledger/host-api";
 import { parseGitHubPullRequestUrl } from "./parse.js";
+import { readGitHubPresentation } from "./presentation.js";
 
 /**
  * Capability flags for GitHub pull requests.
@@ -93,8 +98,17 @@ export class GitHubAdapter implements HostAdapter {
   }
 
   /**
-   * Observes URL changes via `popstate` and a lightweight interval for SPA navigations.
-   * Calls `onChange` immediately with the current context, then on each change.
+   * Reads PR title from the heading or tab title.
+   *
+   * @param _url - Current URL (unused; presentation is document-based)
+   * @param doc - Page document
+   */
+  readPresentation(_url: URL, doc: Document): ChangePresentation | null {
+    return readGitHubPresentation(doc);
+  }
+
+  /**
+   * Observes URL and title changes (SPA may paint the title after navigation).
    *
    * @param doc - Document belonging to the page window
    * @param onChange - Receives the latest context or null
@@ -110,24 +124,37 @@ export class GitHubAdapter implements HostAdapter {
       return () => undefined;
     }
 
-    /** Last href we reported, used to avoid duplicate callbacks. */
-    let lastHref = "";
+    /** Last emitted signature (href + title) to avoid duplicate callbacks. */
+    let lastSig = "";
 
     /**
-     * Reads the current URL and notifies when it changed.
+     * Parses location, attaches presentation, and notifies on real changes.
      */
     const emitIfChanged = (): void => {
       const href = win.location.href;
-      if (href === lastHref) {
+      const base = this.parseLocation(new URL(href), doc);
+      if (!base) {
+        const sig = `${href}|`;
+        if (sig !== lastSig) {
+          lastSig = sig;
+          onChange(null);
+        }
         return;
       }
-      lastHref = href;
-      onChange(this.parseLocation(new URL(href), doc));
+      const presentation = this.readPresentation(new URL(href), doc) ?? undefined;
+      const next: CaptureContext = presentation
+        ? { ...base, presentation }
+        : base;
+      const sig = `${href}|${presentation?.title ?? ""}`;
+      if (sig === lastSig) {
+        return;
+      }
+      lastSig = sig;
+      onChange(next);
     };
 
     emitIfChanged();
     win.addEventListener("popstate", emitIfChanged);
-    // GitHub soft-navigates without always firing popstate; poll as a simple baseline.
     const timer = win.setInterval(emitIfChanged, 1000);
 
     return () => {

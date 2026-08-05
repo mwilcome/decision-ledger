@@ -2,6 +2,7 @@ import type { CaptureContext, ChangeRef, Decision } from "@decision-ledger/core"
 import {
   buildChangeKey,
   formatAbsoluteTime,
+  formatChangeDisplayLabel,
   formatChangeLabel,
   formatChangeLabelWithHost,
   formatCommitScopeLabel,
@@ -84,6 +85,13 @@ export interface DecisionListProps {
    * @param headSha - Commit SHA
    */
   getCommitUrl?: (change: ChangeRef, headSha: string) => string | null;
+
+  /**
+   * Returns a cached friendly title for a change key, if known.
+   *
+   * @param changeKey - Stable change key
+   */
+  getChangeTitle?: (changeKey: string) => string | undefined;
 }
 
 /**
@@ -103,6 +111,7 @@ export function DecisionList(props: DecisionListProps): ReactElement {
     onDeleteOldSettled,
     getChangeUrl,
     getCommitUrl,
+    getChangeTitle,
   } = props;
 
   /**
@@ -205,6 +214,13 @@ export function DecisionList(props: DecisionListProps): ReactElement {
         const changeHref = sampleChange
           ? (getChangeUrl?.(sampleChange) ?? null)
           : null;
+        const cachedTitle = getChangeTitle?.(group.key);
+        const displayTitle = sampleChange
+          ? formatChangeDisplayLabel(sampleChange, { title: cachedTitle })
+          : group.title;
+        const titleAttr = sampleChange
+          ? cachedTitle || formatChangeLabelWithHost(sampleChange)
+          : group.title;
 
         const groupClass = [
           "dl-group",
@@ -238,11 +254,8 @@ export function DecisionList(props: DecisionListProps): ReactElement {
                 <span className="dl-group__title-row">
                   <span className="dl-group__title">
                     {sampleChange ? (
-                      <ExternalLink
-                        href={changeHref}
-                        title={formatChangeLabelWithHost(sampleChange)}
-                      >
-                        {formatChangeLabel(sampleChange)}
+                      <ExternalLink href={changeHref} title={titleAttr}>
+                        {displayTitle}
                       </ExternalLink>
                     ) : (
                       group.title
@@ -331,6 +344,7 @@ export function DecisionList(props: DecisionListProps): ReactElement {
                                 onDelete={onDelete}
                                 getChangeUrl={getChangeUrl}
                                 getCommitUrl={getCommitUrl}
+                                getChangeTitle={getChangeTitle}
                               />
                             ))}
                           </ul>
@@ -422,6 +436,11 @@ interface DecisionCardProps {
    * Optional commit URL builder for crumbs.
    */
   getCommitUrl?: (change: ChangeRef, headSha: string) => string | null;
+
+  /**
+   * Optional title lookup for crumbs.
+   */
+  getChangeTitle?: (changeKey: string) => string | undefined;
 }
 
 /**
@@ -438,6 +457,7 @@ function DecisionCard(props: DecisionCardProps): ReactElement {
     onDelete,
     getChangeUrl,
     getCommitUrl,
+    getChangeTitle,
   } = props;
   const attention = isAttentionDecision(decision.kind, decision.status);
   const settled = isSettledDecision(decision.status);
@@ -449,6 +469,12 @@ function DecisionCard(props: DecisionCardProps): ReactElement {
     sha && getCommitUrl
       ? getCommitUrl(decision.context.change, sha)
       : null;
+  const cKey = buildChangeKey(decision.context.change);
+  const cachedTitle = getChangeTitle?.(cKey);
+  const crumbLabel = formatChangeDisplayLabel(decision.context.change, {
+    title:
+      decision.context.presentation?.title?.trim() || cachedTitle,
+  });
 
   const classNames = [
     "dl-list__item",
@@ -467,9 +493,13 @@ function DecisionCard(props: DecisionCardProps): ReactElement {
         <p className="dl-list__crumb">
           <ExternalLink
             href={changeHref}
-            title={formatChangeLabelWithHost(decision.context.change)}
+            title={
+              decision.context.presentation?.title ||
+              cachedTitle ||
+              formatChangeLabelWithHost(decision.context.change)
+            }
           >
-            {formatChangeLabel(decision.context.change)}
+            {crumbLabel}
           </ExternalLink>
           <span className="dl-list__crumb-sep"> → </span>
           {sha ? (

@@ -48,7 +48,9 @@ host | instanceUrl | owner | name | number | headSha
 
 When `CaptureContext.revision.headSha` is set at save time, the decision is commit-scoped. The side panel can filter by whole change, current commit, or all saved items.
 
-Change labels use `#N · owner/repo` (unique with host + instance). Adapters expose `buildChangeUrl` and `buildCommitUrl` so the UI can open the PR/MR or commit in a new tab without calling forge APIs. Commit links use the stable repo commit page.
+Change identity is `#N · owner/repo` (unique with host + instance). Adapters expose `buildChangeUrl` and `buildCommitUrl` for links (no forge API). Commit links use the stable repo commit page.
+
+Friendly titles are learned from the open page (`document.title` / headings via `readPresentation`), cached in IndexedDB as `change_meta` by change key, and shown as `#N · <title>` when known.
 
 For a company-hosted GitLab or GitHub, always include `instanceUrl` so two servers with the same project path stay separate.
 

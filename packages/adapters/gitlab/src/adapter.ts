@@ -1,6 +1,11 @@
-import type { CaptureContext, ChangeRef } from "@decision-ledger/core";
+import type {
+  CaptureContext,
+  ChangePresentation,
+  ChangeRef,
+} from "@decision-ledger/core";
 import type { HostAdapter, HostCapabilities } from "@decision-ledger/host-api";
 import { parseGitLabMergeRequestUrl } from "./parse.js";
+import { readGitLabPresentation } from "./presentation.js";
 
 /**
  * Capability flags for GitLab merge requests.
@@ -95,7 +100,17 @@ export class GitLabAdapter implements HostAdapter {
   }
 
   /**
-   * Observes URL changes for GitLab SPA navigations.
+   * Reads MR title from the heading or tab title.
+   *
+   * @param _url - Current URL
+   * @param doc - Page document
+   */
+  readPresentation(_url: URL, doc: Document): ChangePresentation | null {
+    return readGitLabPresentation(doc);
+  }
+
+  /**
+   * Observes URL and title changes for GitLab SPA navigations.
    *
    * @param doc - Document belonging to the page window
    * @param onChange - Receives the latest context or null
@@ -111,19 +126,33 @@ export class GitLabAdapter implements HostAdapter {
       return () => undefined;
     }
 
-    /** Last href we reported, used to avoid duplicate callbacks. */
-    let lastHref = "";
+    /** Last emitted signature (href + title). */
+    let lastSig = "";
 
     /**
-     * Reads the current URL and notifies when it changed.
+     * Parses location, attaches presentation, and notifies on real changes.
      */
     const emitIfChanged = (): void => {
       const href = win.location.href;
-      if (href === lastHref) {
+      const base = this.parseLocation(new URL(href), doc);
+      if (!base) {
+        const sig = `${href}|`;
+        if (sig !== lastSig) {
+          lastSig = sig;
+          onChange(null);
+        }
         return;
       }
-      lastHref = href;
-      onChange(this.parseLocation(new URL(href), doc));
+      const presentation = this.readPresentation(new URL(href), doc) ?? undefined;
+      const next: CaptureContext = presentation
+        ? { ...base, presentation }
+        : base;
+      const sig = `${href}|${presentation?.title ?? ""}`;
+      if (sig === lastSig) {
+        return;
+      }
+      lastSig = sig;
+      onChange(next);
     };
 
     emitIfChanged();

@@ -130,6 +130,26 @@ export type PageRole =
   | "unknown";
 
 /**
+ * Human-facing presentation of a change, learned from the page (not forge API).
+ */
+export interface ChangePresentation {
+  /**
+   * Pull/merge request title when read from the page or tab.
+   */
+  title?: string;
+
+  /**
+   * Source branch name when visible on the page.
+   */
+  sourceBranch?: string;
+
+  /**
+   * Target branch name when visible on the page.
+   */
+  targetBranch?: string;
+}
+
+/**
  * Snapshot of where the user was when a decision was captured or when context was last observed.
  */
 export interface CaptureContext {
@@ -167,6 +187,47 @@ export interface CaptureContext {
    * ISO-8601 timestamp for when this context was built.
    */
   capturedAt: string;
+
+  /**
+   * Optional title/branches learned from the open page.
+   */
+  presentation?: ChangePresentation;
+}
+
+/**
+ * Cached display metadata for a change, keyed by {@link buildChangeKey}.
+ * Learned while visiting the change page; not a forge API cache.
+ */
+export interface ChangeMeta {
+  /**
+   * Stable change key (host | instance | owner | name | number).
+   */
+  changeKey: string;
+
+  /**
+   * Last known PR/MR title from the page.
+   */
+  title?: string;
+
+  /**
+   * Optional user-chosen short name (future UI).
+   */
+  nickname?: string;
+
+  /**
+   * Source branch when last seen.
+   */
+  sourceBranch?: string;
+
+  /**
+   * Target branch when last seen.
+   */
+  targetBranch?: string;
+
+  /**
+   * ISO-8601 time of last meta update.
+   */
+  updatedAt: string;
 }
 
 /**

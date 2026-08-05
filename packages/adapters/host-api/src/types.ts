@@ -1,5 +1,6 @@
 import type {
   CaptureContext,
+  ChangePresentation,
   ChangeRef,
   ForgeReviewSnapshot,
   HostId,
@@ -91,6 +92,15 @@ export interface HostAdapter {
    * @param headSha - Commit SHA (short or full)
    */
   buildCommitUrl(change: ChangeRef, headSha: string): string;
+
+  /**
+   * Reads a human title (and optional branches) from the open page.
+   * No forge API calls — DOM / document.title only.
+   *
+   * @param url - Current page URL
+   * @param doc - Document to read
+   */
+  readPresentation?(url: URL, doc: Document): ChangePresentation | null;
 
   /**
    * Watches SPA navigation and DOM updates and reports context changes.

@@ -6,6 +6,8 @@
 
 export type {
   CaptureContext,
+  ChangeMeta,
+  ChangePresentation,
   ChangeRef,
   Decision,
   DecisionKind,
@@ -60,6 +62,7 @@ export {
   changeGroupKey,
   changeNoun,
   countDecisionMarkers,
+  formatChangeDisplayLabel,
   formatChangeLabel,
   formatChangeLabelWithHost,
   formatCommitScopeLabel,

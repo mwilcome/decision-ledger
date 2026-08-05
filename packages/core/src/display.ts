@@ -3,9 +3,8 @@ import { buildChangeKey } from "./context-key.js";
 import { normalizeShaForDisplay } from "./sha.js";
 
 /**
- * Builds a short label for a pull request or merge request.
+ * Builds a short identity label for a pull request or merge request.
  * Example: `#2 · mwilcome/decision-ledger`
- * (Host-unique with owner/repo; not "PR #2" alone.)
  *
  * @param change - Change identity
  */
@@ -21,6 +20,43 @@ export function formatChangeLabel(change: ChangeRef): string {
 export function formatChangeLabelWithHost(change: ChangeRef): string {
   const noun = changeNoun(change.repo.host);
   return `${noun} #${change.number} · ${change.repo.owner}/${change.repo.name}`;
+}
+
+/**
+ * Friendly list/banner label: nickname, then learned title, then identity fallback.
+ *
+ * @param change - Change identity
+ * @param meta - Optional cached presentation (title / nickname)
+ * @param maxTitleLen - Max characters of title to show after `#N · `
+ */
+export function formatChangeDisplayLabel(
+  change: ChangeRef,
+  meta?: { title?: string; nickname?: string } | null,
+  maxTitleLen = 42,
+): string {
+  const idPrefix = `#${change.number}`;
+  const friendly = meta?.nickname?.trim() || meta?.title?.trim();
+  if (friendly) {
+    return `${idPrefix} · ${truncateText(friendly, maxTitleLen)}`;
+  }
+  return formatChangeLabel(change);
+}
+
+/**
+ * Truncates text with an ellipsis when longer than maxLen.
+ *
+ * @param text - Source text
+ * @param maxLen - Maximum length including ellipsis
+ */
+function truncateText(text: string, maxLen: number): string {
+  const cleaned = text.replace(/\s+/g, " ").trim();
+  if (cleaned.length <= maxLen) {
+    return cleaned;
+  }
+  if (maxLen <= 1) {
+    return "…";
+  }
+  return `${cleaned.slice(0, maxLen - 1).trimEnd()}…`;
 }
 
 /**

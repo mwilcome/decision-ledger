@@ -1,4 +1,4 @@
-import type { Decision } from "@decision-ledger/core";
+import type { ChangeMeta, Decision } from "@decision-ledger/core";
 
 /**
  * Persistence port for decision records.
@@ -30,4 +30,28 @@ export interface DecisionStore {
    * @param id - Decision id
    */
   remove(id: string): Promise<void>;
+}
+
+/**
+ * Persistence port for per-change display metadata (titles, nicknames).
+ */
+export interface ChangeMetaStore {
+  /**
+   * Returns every cached change meta record.
+   */
+  list(): Promise<ChangeMeta[]>;
+
+  /**
+   * Loads meta for one change key, or null when missing.
+   *
+   * @param changeKey - Stable change key
+   */
+  get(changeKey: string): Promise<ChangeMeta | null>;
+
+  /**
+   * Inserts or replaces meta for a change key.
+   *
+   * @param meta - Meta to persist
+   */
+  save(meta: ChangeMeta): Promise<void>;
 }
