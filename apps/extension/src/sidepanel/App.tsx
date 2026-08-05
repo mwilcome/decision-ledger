@@ -67,16 +67,39 @@ export function App(): ReactElement {
   const [error, setError] = useState<string | null>(null);
 
   /**
-   * Fingerprint of the open page (PR + optional commit).
+   * Stable id for the open change (PR/MR). Empty when not on a change page.
+   * Field-level deps so 1.5s context polls do not look like navigation.
    */
-  const pageFingerprint = useMemo(() => {
+  const changeKey = useMemo(() => {
     if (!context) {
       return "";
     }
-    const changePart = buildChangeKey(context.change);
-    const shaPart = context.revision?.headSha?.toLowerCase() ?? "";
-    return `${changePart}|${shaPart}`;
-  }, [context]);
+    return buildChangeKey(context.change);
+  }, [
+    context?.change.number,
+    context?.change.repo.host,
+    context?.change.repo.instanceUrl,
+    context?.change.repo.name,
+    context?.change.repo.owner,
+  ]);
+
+  /**
+   * Commit SHA on the open page, if any.
+   */
+  const pageHeadSha = context?.revision?.headSha?.toLowerCase() ?? "";
+
+  /**
+   * Navigation fingerprint: only changes when the user moves to another PR or commit.
+   */
+  const pageNavId = useMemo(() => {
+    if (!changeKey) {
+      return "none";
+    }
+    if (pageHeadSha) {
+      return `commit:${changeKey}:${pageHeadSha}`;
+    }
+    return `change:${changeKey}`;
+  }, [changeKey, pageHeadSha]);
 
   /**
    * Reloads notes from IndexedDB.
@@ -116,19 +139,21 @@ export function App(): ReactElement {
   }, [refreshContext, refreshDecisions]);
 
   /**
-   * Auto-selects filter: commit page → this commit; PR page → this PR; else all.
+   * Defaults the list filter when navigation changes only:
+   * commit page → Commit, PR page → This PR, else All.
+   * Manual filter changes are kept until the user opens a different PR/commit.
    */
   useEffect(() => {
-    if (!pageFingerprint || !context) {
+    if (pageNavId === "none") {
       setScope("all");
       return;
     }
-    if (context.revision?.headSha) {
+    if (pageNavId.startsWith("commit:")) {
       setScope("commit");
       return;
     }
     setScope("change");
-  }, [pageFingerprint, context]);
+  }, [pageNavId]);
 
   /**
    * Notes visible under the current filter.
