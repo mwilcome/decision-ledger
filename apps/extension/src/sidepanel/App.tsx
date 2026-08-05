@@ -1,5 +1,5 @@
 /**
- * Side panel application: context banner, full CRUD form, filtered list.
+ * Side panel: page context, save target, plain-language form, grouped notes.
  */
 
 import type { CaptureContext, Decision } from "@decision-ledger/core";
@@ -16,6 +16,7 @@ import {
   DecisionForm,
   DecisionList,
   ListFilter,
+  SaveTargetStrip,
   type DecisionFormValues,
   type DecisionListScope,
 } from "@decision-ledger/ui";
@@ -42,27 +43,27 @@ interface ContextGetResponse {
  */
 export function App(): ReactElement {
   /**
-   * Persistent store shared for the lifetime of this side panel document.
+   * Persistent store for this side panel document.
    */
   const store = useMemo(() => new IndexedDbDecisionStore(), []);
 
   /** Current page context from the background worker. */
   const [context, setContext] = useState<CaptureContext | null>(null);
 
-  /** All decisions loaded from IndexedDB. */
+  /** All notes loaded from IndexedDB. */
   const [decisions, setDecisions] = useState<Decision[]>([]);
 
-  /** List filter: this change, this commit, or everything. */
+  /** List filter scope. */
   const [scope, setScope] = useState<DecisionListScope>("change");
 
-  /** Decision currently being edited, or null when creating. */
+  /** Note currently being edited, or null when creating. */
   const [editing, setEditing] = useState<Decision | null>(null);
 
   /** Error message from storage operations, if any. */
   const [error, setError] = useState<string | null>(null);
 
   /**
-   * Reloads decisions from IndexedDB into component state.
+   * Reloads notes from IndexedDB.
    */
   const refreshDecisions = useCallback(async (): Promise<void> => {
     try {
@@ -71,12 +72,12 @@ export function App(): ReactElement {
       setDecisions(all);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load decisions");
+      setError(err instanceof Error ? err.message : "Failed to load notes");
     }
   }, [store]);
 
   /**
-   * Asks the background script for the latest capture context.
+   * Asks the background script for the latest page context.
    */
   const refreshContext = useCallback(async (): Promise<void> => {
     try {
@@ -99,7 +100,7 @@ export function App(): ReactElement {
   }, [refreshContext, refreshDecisions]);
 
   /**
-   * Keeps the list scope valid when page context changes (for example commit SHA appears).
+   * Keeps the list scope valid when page context changes.
    */
   useEffect(() => {
     if (!context && scope !== "all") {
@@ -112,7 +113,7 @@ export function App(): ReactElement {
   }, [context, scope]);
 
   /**
-   * Decisions visible under the current filter.
+   * Notes visible under the current filter (then grouped in the list UI).
    */
   const visibleDecisions = useMemo(() => {
     if (scope === "all" || !context) {
@@ -120,22 +121,16 @@ export function App(): ReactElement {
     }
     if (scope === "commit" && context.revision?.headSha) {
       return decisions.filter((d) =>
-        decisionMatchesCommit(
-          d,
-          context.change,
-          context.revision!.headSha,
-        ),
+        decisionMatchesCommit(d, context.change, context.revision!.headSha),
       );
     }
-    return decisions.filter((d) =>
-      decisionMatchesChange(d, context.change),
-    );
+    return decisions.filter((d) => decisionMatchesChange(d, context.change));
   }, [context, decisions, scope]);
 
   /**
-   * Creates a new decision or updates the one being edited.
+   * Creates a new note or updates the one being edited.
    *
-   * @param values - Form values from {@link DecisionForm}
+   * @param values - Form values
    */
   async function handleSubmit(values: DecisionFormValues): Promise<void> {
     try {
@@ -162,14 +157,14 @@ export function App(): ReactElement {
       await refreshDecisions();
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save decision");
+      setError(err instanceof Error ? err.message : "Failed to save note");
     }
   }
 
   /**
-   * Opens a decision in the edit form.
+   * Opens a note in the edit form.
    *
-   * @param decision - Decision to edit
+   * @param decision - Note to edit
    */
   function handleEdit(decision: Decision): void {
     setEditing(decision);
@@ -183,9 +178,9 @@ export function App(): ReactElement {
   }
 
   /**
-   * Confirms and deletes a decision from IndexedDB.
+   * Confirms and deletes a note from IndexedDB.
    *
-   * @param decision - Decision to remove
+   * @param decision - Note to remove
    */
   async function handleDelete(decision: Decision): Promise<void> {
     const preview =
@@ -193,7 +188,7 @@ export function App(): ReactElement {
         ? `${decision.body.slice(0, 80)}…`
         : decision.body;
     const ok = window.confirm(
-      `Delete this decision?\n\n${preview}\n\nThis cannot be undone.`,
+      `Delete this note?\n\n${preview}\n\nThis cannot be undone.`,
     );
     if (!ok) {
       return;
@@ -206,7 +201,7 @@ export function App(): ReactElement {
       await refreshDecisions();
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete decision");
+      setError(err instanceof Error ? err.message : "Failed to delete note");
     }
   }
 
@@ -216,13 +211,20 @@ export function App(): ReactElement {
     <div className="dl-app">
       <header className="dl-app__header">
         <h1 className="dl-app__title">Decision Ledger</h1>
+        <p className="dl-app__tagline">
+          Your review notes, saved on this computer
+        </p>
       </header>
+
       <ContextBanner context={context} />
+      <SaveTargetStrip context={context} editing={editing !== null} />
+
       {error ? (
         <p className="dl-app__error" role="alert">
           {error}
         </p>
       ) : null}
+
       <DecisionForm
         key={editing?.id ?? "create"}
         mode={editing ? "edit" : "create"}
@@ -239,8 +241,9 @@ export function App(): ReactElement {
         onSubmit={(v) => void handleSubmit(v)}
         onCancel={editing ? handleCancelEdit : undefined}
       />
-      <section className="dl-app__list" aria-label="Saved decisions">
-        <h2 className="dl-app__subtitle">Saved</h2>
+
+      <section className="dl-app__list" aria-label="Saved notes">
+        <h2 className="dl-app__subtitle">Saved notes</h2>
         <ListFilter
           scope={scope}
           onChange={setScope}

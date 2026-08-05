@@ -40,6 +40,25 @@ export {
 export {
   DECISION_KIND_OPTIONS,
   DECISION_STATUS_OPTIONS,
+  DECISION_STATUS_OPTIONS_CREATE,
+  getDecisionKindHint,
   getDecisionKindLabel,
   getDecisionStatusLabel,
+  getDefaultStatusForKind,
+  isAttentionDecision,
+  isSettledDecision,
 } from "./labels.js";
+
+export {
+  changeGroupKey,
+  changeNoun,
+  countDecisionMarkers,
+  formatChangeLabel,
+  formatCommitScopeLabel,
+  formatSaveTarget,
+} from "./display.js";
+
+export { normalizeShaForDisplay } from "./sha.js";
+
+export { groupDecisionsByChange } from "./group.js";
+export type { DecisionChangeGroup, DecisionSection } from "./group.js";

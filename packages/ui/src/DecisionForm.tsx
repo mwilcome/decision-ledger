@@ -2,25 +2,28 @@ import type { DecisionKind, DecisionStatus } from "@decision-ledger/core";
 import {
   DECISION_KIND_OPTIONS,
   DECISION_STATUS_OPTIONS,
+  DECISION_STATUS_OPTIONS_CREATE,
+  getDecisionKindHint,
+  getDefaultStatusForKind,
 } from "@decision-ledger/core";
 import { useEffect, useState, type FormEvent, type ReactElement } from "react";
 
 /**
- * Values submitted when the user creates or updates a decision.
+ * Values submitted when the user creates or updates a note.
  */
 export interface DecisionFormValues {
   /**
-   * Decision category chosen by the user.
+   * Note type (stored as kind).
    */
   kind: DecisionKind;
 
   /**
-   * Lifecycle status chosen by the user.
+   * Progress (stored as status).
    */
   status: DecisionStatus;
 
   /**
-   * Free-text body of the decision.
+   * Free-text body.
    */
   body: string;
 }
@@ -30,65 +33,82 @@ export interface DecisionFormValues {
  */
 export interface DecisionFormProps {
   /**
-   * When false, the form is disabled (no active change context for create).
+   * When false, the form is disabled.
    */
   enabled: boolean;
 
   /**
-   * `"create"` starts empty (with defaults). `"edit"` loads {@link initialValues}.
+   * `"create"` or `"edit"`.
    */
   mode: "create" | "edit";
 
   /**
-   * Starting field values when editing, or optional defaults when creating.
+   * Starting field values when editing.
    */
   initialValues?: Partial<DecisionFormValues>;
 
   /**
    * Called with validated form values on submit.
    *
-   * @param values - Kind, status, and body entered by the user
+   * @param values - Type, progress, and body
    */
   onSubmit: (values: DecisionFormValues) => void;
 
   /**
-   * Called when the user cancels edit mode. Hidden in create mode when omitted.
+   * Called when the user cancels edit mode.
    */
   onCancel?: () => void;
 }
 
 /**
- * Form to create a new decision or edit an existing one.
+ * Form to create or edit a review note with plain-language fields.
  *
  * @param props - Component props
  */
 export function DecisionForm(props: DecisionFormProps): ReactElement {
   const { enabled, mode, initialValues, onSubmit, onCancel } = props;
 
-  /** Selected decision kind. */
-  const [kind, setKind] = useState<DecisionKind>(
-    initialValues?.kind ?? "note",
+  /** Note type. */
+  const [kind, setKind] = useState<DecisionKind>(initialValues?.kind ?? "note");
+
+  /** Progress. */
+  const [status, setStatus] = useState<DecisionStatus>(
+    initialValues?.status ?? getDefaultStatusForKind(initialValues?.kind ?? "note"),
   );
 
-  /** Selected lifecycle status. */
-  const [status, setStatus] = useState<DecisionStatus>(
-    initialValues?.status ?? "draft",
-  );
+  /** Whether the user manually changed progress (stops auto-default from type). */
+  const [statusTouched, setStatusTouched] = useState(mode === "edit");
 
   /** Body text. */
   const [body, setBody] = useState(initialValues?.body ?? "");
 
   /**
-   * Resets fields when switching into edit mode or when initial values change.
+   * Resets fields when switching create/edit target.
    */
   useEffect(() => {
-    setKind(initialValues?.kind ?? "note");
-    setStatus(initialValues?.status ?? "draft");
+    const nextKind = initialValues?.kind ?? "note";
+    setKind(nextKind);
+    setStatus(
+      initialValues?.status ?? getDefaultStatusForKind(nextKind),
+    );
     setBody(initialValues?.body ?? "");
+    setStatusTouched(mode === "edit");
   }, [mode, initialValues?.kind, initialValues?.status, initialValues?.body]);
 
   /**
-   * Validates and submits the form. Clears the body after a successful create.
+   * Updates note type and optionally progress default in create mode.
+   *
+   * @param next - New kind
+   */
+  function handleKindChange(next: DecisionKind): void {
+    setKind(next);
+    if (!statusTouched && mode === "create") {
+      setStatus(getDefaultStatusForKind(next));
+    }
+  }
+
+  /**
+   * Validates and submits the form.
    *
    * @param event - Form submit event
    */
@@ -102,24 +122,35 @@ export function DecisionForm(props: DecisionFormProps): ReactElement {
     if (mode === "create") {
       setBody("");
       setKind("note");
-      setStatus("draft");
+      setStatus(getDefaultStatusForKind("note"));
+      setStatusTouched(false);
     }
   }
+
+  const statusOptions =
+    mode === "create" ? DECISION_STATUS_OPTIONS_CREATE : DECISION_STATUS_OPTIONS;
 
   return (
     <form className="dl-form" onSubmit={handleSubmit}>
       {mode === "edit" ? (
         <p className="dl-form__mode" aria-live="polite">
-          Editing decision
+          Editing this note
         </p>
       ) : null}
+
+      <p className="dl-form__pair-help">
+        <strong>What is this?</strong> is the sort of note you are writing.{" "}
+        <strong>Where is this?</strong> is whether you are still working on it,
+        finished, or still waiting on an answer.
+      </p>
+
       <label className="dl-form__label">
-        Kind
+        What is this note?
         <select
           className="dl-form__select"
           value={kind}
           disabled={!enabled}
-          onChange={(e) => setKind(e.target.value as DecisionKind)}
+          onChange={(e) => handleKindChange(e.target.value as DecisionKind)}
         >
           {DECISION_KIND_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>
@@ -127,36 +158,47 @@ export function DecisionForm(props: DecisionFormProps): ReactElement {
             </option>
           ))}
         </select>
+        <span className="dl-form__hint">{getDecisionKindHint(kind)}</span>
       </label>
+
       <label className="dl-form__label">
-        Status
+        Where is this?
         <select
           className="dl-form__select"
           value={status}
           disabled={!enabled}
-          onChange={(e) => setStatus(e.target.value as DecisionStatus)}
+          onChange={(e) => {
+            setStatusTouched(true);
+            setStatus(e.target.value as DecisionStatus);
+          }}
         >
-          {DECISION_STATUS_OPTIONS.map((option) => (
+          {statusOptions.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
             </option>
           ))}
         </select>
+        <span className="dl-form__hint">
+          In progress = still thinking. Settled = done. Still open = waiting on
+          an answer.
+        </span>
       </label>
+
       <label className="dl-form__label">
-        Decision
+        Your note
         <textarea
           className="dl-form__textarea"
           value={body}
           disabled={!enabled}
           rows={4}
-          placeholder="What did you decide, and why?"
+          placeholder="Write the decision or question in plain language."
           onChange={(e) => setBody(e.target.value)}
         />
       </label>
+
       <div className="dl-form__actions">
         <button className="dl-form__submit" type="submit" disabled={!enabled}>
-          {mode === "edit" ? "Update" : "Save"}
+          {mode === "edit" ? "Update note" : "Save note"}
         </button>
         {mode === "edit" && onCancel ? (
           <button

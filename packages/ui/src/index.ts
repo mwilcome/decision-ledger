@@ -14,3 +14,6 @@ export type { DecisionListProps } from "./DecisionList.js";
 
 export { ListFilter } from "./ListFilter.js";
 export type { DecisionListScope, ListFilterProps } from "./ListFilter.js";
+
+export { SaveTargetStrip } from "./SaveTargetStrip.js";
+export type { SaveTargetStripProps } from "./SaveTargetStrip.js";

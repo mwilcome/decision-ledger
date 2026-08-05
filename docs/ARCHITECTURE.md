@@ -50,9 +50,13 @@ When `CaptureContext.revision.headSha` is set at save time, the decision is comm
 
 For a company-hosted GitLab or GitHub, always include `instanceUrl` so two servers with the same project path stay separate.
 
-**Decision kinds** (stored id → UI label): `note` (Note), `risk` (Accepted risk), `question` (Open question), `follow_up` (Follow-up), `block` (Needs changes), `approve_with_notes` (OK, minor notes).
+**Note type** (field `kind` in code): what the note is about. UI label **What is this note?**  
+Examples: Note, Accepted risk, Open question, Follow-up, Needs changes, OK minor notes.
 
-**Decision statuses:** `draft`, `decided`, `open_question`, `superseded`.
+**Progress** (field `status` in code): whether you are done with the note. UI label **Where is this?**  
+`draft` → In progress, `decided` → Settled, `open_question` → Still open, `superseded` → Replaced.
+
+The saved list groups notes by pull request, then by whole PR vs commit.
 
 The site’s own approval or CI status can be shown if we load it. It is separate from a `Decision` record.
 

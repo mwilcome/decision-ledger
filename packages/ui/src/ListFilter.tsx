@@ -1,7 +1,7 @@
 import type { ReactElement } from "react";
 
 /**
- * Which saved decisions the list should show.
+ * Which saved notes the list should show.
  */
 export type DecisionListScope = "change" | "commit" | "all";
 
@@ -22,18 +22,18 @@ export interface ListFilterProps {
   onChange: (scope: DecisionListScope) => void;
 
   /**
-   * When false, the "This commit" option is disabled (no SHA on the page).
+   * When false, "This commit" is disabled.
    */
   commitAvailable: boolean;
 
   /**
-   * When false, "This change" is disabled (no PR/MR context).
+   * When false, "This pull request" is disabled.
    */
   changeAvailable: boolean;
 }
 
 /**
- * Scope control for the saved decisions list.
+ * Scope control for the saved notes list, in plain language.
  *
  * @param props - Component props
  */
@@ -41,7 +41,8 @@ export function ListFilter(props: ListFilterProps): ReactElement {
   const { scope, onChange, commitAvailable, changeAvailable } = props;
 
   return (
-    <div className="dl-filter" role="group" aria-label="Saved list scope">
+    <div className="dl-filter" role="group" aria-label="Which notes to show">
+      <p className="dl-filter__heading">Show notes for</p>
       <label className="dl-filter__option">
         <input
           type="radio"
@@ -50,7 +51,7 @@ export function ListFilter(props: ListFilterProps): ReactElement {
           disabled={!changeAvailable}
           onChange={() => onChange("change")}
         />
-        This change
+        This pull request
       </label>
       <label className="dl-filter__option">
         <input
@@ -60,7 +61,7 @@ export function ListFilter(props: ListFilterProps): ReactElement {
           disabled={!commitAvailable}
           onChange={() => onChange("commit")}
         />
-        This commit
+        This commit only
       </label>
       <label className="dl-filter__option">
         <input
@@ -69,7 +70,7 @@ export function ListFilter(props: ListFilterProps): ReactElement {
           checked={scope === "all"}
           onChange={() => onChange("all")}
         />
-        All saved
+        Everything saved
       </label>
     </div>
   );
