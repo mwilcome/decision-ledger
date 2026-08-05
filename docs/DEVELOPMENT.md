@@ -1,115 +1,68 @@
 # Development
 
-Standards and paths for working in **Decision Ledger**. Update this file when tooling or branch policy changes.
+## Tooling
 
-## Prerequisites (planned)
+| Item | Choice |
+|------|--------|
+| Package manager | npm |
+| Bundler | Vite |
+| UI | React |
+| Language | TypeScript strict |
+| Extension | MV3 WebExtension |
 
-Exact versions will be pinned at monorepo scaffold. Expect roughly:
+Node LTS. Chromium and Firefox for loading unpacked builds.
 
-- **Git** 2.40+
-- **Node.js** LTS (Active)
-- **pnpm** or npm (chosen at scaffold and documented here)
-- A Chromium browser and Firefox for extension loads
-- Optional: [GitHub CLI](https://cli.github.com/) (`gh`) for PRs
+## Branches
 
-## Clone & branch
+| Branch | Role |
+|--------|------|
+| `main` | Stable |
+| `dev/1.0.0` | Active development for 1.0.0 |
+| `feature/<name>` | Work branched from `dev/1.0.0` |
+| `fix/<name>` | Fixes |
 
-```powershell
-git clone https://github.com/mwilcome/decision-ledger.git
-cd decision-ledger
-git fetch origin
-git checkout dev/1.0.0
-git pull
-```
+Tags (`v1.0.0`, …) mark releases. PRs target `dev/1.0.0` unless merging a release to `main`.
 
-### Branch model
+## Commits
 
-| Branch | Purpose |
-|--------|---------|
-| `main` | Stable line; should remain releasable once we ship |
-| `dev/1.0.0` | Integration branch for the 1.0.0 effort |
-| `feature/<short-name>` | Short-lived work branched from `dev/1.0.0` |
-| `fix/<short-name>` | Same, for fixes |
-| `docs/<short-name>` | Docs-only when convenient |
-
-**Tags:** `v1.0.0`, `v1.0.1`, … mark releases. Do not use version tags as long-lived branches.
+Imperative subject. Conventional Commits preferred:
 
 ```text
-main ────────────────●────────────●────
-                     ▲            ▲
-dev/1.0.0 ────●──●──●────●──●────●────  (merge / PR when slice ready)
-              └── feature/foo
+feat(adapters): parse GitLab MR URLs
+fix(storage): load decisions after reload
+docs: shorten architecture
 ```
 
-### Naming
+No secrets or customer data in commits.
 
-- Prefer lowercase, hyphens: `feature/gitlab-url-parser`
-- No personal long-lived branches on `origin` without a clear owner and expiry
+## Code rules
 
-## Day-to-day workflow
+1. `packages/core` has no `chrome`, `browser`, or `document` imports.
+2. Host logic only in `packages/adapters/*`.
+3. UI uses adapter capabilities, not `if (host === "gitlab")`.
+4. Unknown pages return `null` context; do not throw out of content scripts.
+5. Detect browser APIs; shell provides fallbacks.
 
-1. Sync `dev/1.0.0`.
-2. Create `feature/...` from it.
-3. Implement + test + update docs if behavior or public contracts change.
-4. Open a PR **into `dev/1.0.0`** (not directly into `main` unless releasing).
-5. After review, merge (squash or merge commit — pick one style per ADR when tooling lands; until then prefer **squash** for features).
-6. Periodically open a PR **`dev/1.0.0` → `main`** when a coherent slice is ready.
+## Tests
 
-### Commit messages
+| Area | Expectation |
+|------|-------------|
+| Core | Unit tests |
+| Adapters | URL/HTML fixtures → expected context |
+| UI / extension | Manual smoke on Chromium; Firefox when shell changes |
 
-Use clear, imperative subjects (Conventional Commits encouraged, not enforced yet):
+Sanitize fixtures. No private source or tokens.
 
-```text
-feat(adapters): parse GitLab MR URLs into ChangeRef
-fix(storage): rehydrate decisions after extension reload
-docs: add adapter fixture guidelines
-chore: add root gitignore
-```
+## PRs
 
-- Subject ≤ ~72 characters when practical  
-- Body explains *why* when the diff is non-obvious  
-- No secrets, tokens, or real customer data in commits  
+- Describe what and why
+- Include tests/fixtures for core or parser changes
+- Update docs when contracts or behavior change
+- Optional host permissions only; call out new permissions
 
-## Coding standards
+## ADRs
 
-### Language & style
-
-| Area | Standard |
-|------|----------|
-| Language | TypeScript, `strict` once scaffold lands |
-| Modules | ES modules; explicit exports from package entrypoints |
-| Core purity | `packages/core` must not import browser or DOM APIs |
-| Host logic | Only inside `packages/adapters/*` |
-| Formatting | Prettier (or Biome) — single config at repo root after scaffold |
-| Lint | ESLint (or Biome) — CI-enforced when CI exists |
-
-### Design rules
-
-1. **No host conditionals in core or UI feature flags by stringly host name** — use adapter capabilities.
-2. **Prefer ports/interfaces** for storage and messaging so tests stay pure.
-3. **Fail soft on pages we don’t understand** — return `null` context; do not throw across the content-script boundary.
-4. **Feature-detect** browser APIs (`sidePanel`, etc.); provide shell fallbacks.
-
-### Testing expectations
-
-| Change type | Minimum bar |
-|-------------|-------------|
-| Core model / lifecycle | Unit tests |
-| Adapter URL/DOM parse | Fixture tests (see ADAPTERS) |
-| UI only | Manual checklist + screenshot if UX shifts |
-| Permissions / messaging | Short manual smoke on Chromium + note Firefox if touched |
-
-Do not commit real private repository HTML that contains secrets; sanitize fixtures.
-
-## Documentation standards
-
-- User-facing or contributor-facing behavior changes → update `docs/` or root `README.md` in the same PR.
-- Significant design choices → new ADR under `docs/decisions/` (see template below).
-- Keep README **short**; deep detail lives under `docs/`.
-
-### ADR template
-
-Create `docs/decisions/NNNN-short-title.md`:
+`docs/decisions/NNNN-short-title.md`:
 
 ```markdown
 # NNNN. Title
@@ -121,47 +74,3 @@ Create `docs/decisions/NNNN-short-title.md`:
 ## Decision
 ## Consequences
 ```
-
-## Pull requests
-
-### Checklist
-
-- [ ] Targets correct base branch (`dev/1.0.0` unless release)
-- [ ] Description: *what* and *why*
-- [ ] Tests or fixtures for parser/core changes
-- [ ] Docs updated if needed
-- [ ] No secrets; fixtures sanitized
-- [ ] Small enough to review (split if not)
-
-### Review bar
-
-Reviewers look for: adapter leakage into core, broken context keys for self-hosted, permission creep, and missing degradation path when DOM is missing.
-
-## Security practices
-
-- Never commit `.env`, PATs, cookies, or session dumps.
-- Optional host permissions only; document any new permission in the PR.
-- Assume decision text may contain security findings—avoid logging bodies at info level.
-
-## Release habits (when ready)
-
-1. Ensure `dev/1.0.0` (or current dev line) is green and documented.  
-2. PR into `main`.  
-3. Tag `vX.Y.Z` on `main`.  
-4. Attach extension build artifacts as release assets if distributing outside stores.  
-
-## Current repo state
-
-| Item | State |
-|------|--------|
-| Documentation | Active |
-| Monorepo scaffold | Not yet (next milestone) |
-| CI | Not yet |
-| Package scripts | Not yet |
-
-Until scaffold lands, “development” is primarily **docs, ADRs, and fixtures design**. Code standards above apply as packages appear.
-
-## Getting help
-
-- Open a GitHub Issue with context and host/browser if relevant.
-- Propose architecture changes via ADR PR when possible.
