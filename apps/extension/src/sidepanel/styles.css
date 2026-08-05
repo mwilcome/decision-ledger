@@ -75,39 +75,6 @@ body {
   font-size: 0.85rem;
 }
 
-.dl-save-target {
-  border: 1px dashed color-mix(in srgb, #2563eb 55%, CanvasText);
-  border-radius: 8px;
-  padding: 8px 10px;
-  background: color-mix(in srgb, #2563eb 8%, Canvas);
-}
-
-.dl-save-target--empty {
-  border-color: color-mix(in srgb, CanvasText 25%, transparent);
-  background: color-mix(in srgb, CanvasText 3%, Canvas);
-}
-
-.dl-save-target__label {
-  margin: 0;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  opacity: 0.8;
-}
-
-.dl-save-target__main {
-  margin: 4px 0 0;
-  font-weight: 600;
-  word-break: break-word;
-}
-
-.dl-save-target__scope,
-.dl-save-target__host {
-  margin: 2px 0 0;
-  font-size: 0.85rem;
-  opacity: 0.9;
-}
-
 .dl-form {
   display: flex;
   flex-direction: column;

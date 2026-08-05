@@ -109,7 +109,7 @@ export function getDecisionStatusLabel(status: DecisionStatus): string {
     case "decided":
       return "Settled";
     case "open_question":
-      return "Still open";
+      return "Waiting for clarification";
     case "superseded":
       return "Replaced";
     default:
@@ -131,13 +131,17 @@ export const DECISION_STATUS_OPTIONS: readonly {
   label: string;
 }[] = [
   { value: "draft", label: getDecisionStatusLabel("draft") },
+  {
+    value: "open_question",
+    label: getDecisionStatusLabel("open_question"),
+  },
   { value: "decided", label: getDecisionStatusLabel("decided") },
-  { value: "open_question", label: getDecisionStatusLabel("open_question") },
   { value: "superseded", label: getDecisionStatusLabel("superseded") },
 ] as const;
 
 /**
  * Progress options when creating a new note (no "Replaced").
+ * Order: In progress, Waiting for clarification, Settled.
  */
 export const DECISION_STATUS_OPTIONS_CREATE: readonly {
   /**

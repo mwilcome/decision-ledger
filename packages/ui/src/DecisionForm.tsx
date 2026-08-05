@@ -139,9 +139,9 @@ export function DecisionForm(props: DecisionFormProps): ReactElement {
       ) : null}
 
       <p className="dl-form__pair-help">
-        <strong>What is this?</strong> is the sort of note you are writing.{" "}
+        <strong>What is this note?</strong> is the sort of note you are writing.{" "}
         <strong>Where is this?</strong> is whether you are still working on it,
-        finished, or still waiting on an answer.
+        waiting for clarification, or finished.
       </p>
 
       <label className="dl-form__label">
@@ -179,8 +179,8 @@ export function DecisionForm(props: DecisionFormProps): ReactElement {
           ))}
         </select>
         <span className="dl-form__hint">
-          In progress = still thinking. Settled = done. Still open = waiting on
-          an answer.
+          In progress = still thinking. Waiting for clarification = need an
+          answer. Settled = done.
         </span>
       </label>
 

@@ -54,7 +54,7 @@ For a company-hosted GitLab or GitHub, always include `instanceUrl` so two serve
 Examples: Note, Accepted risk, Open question, Follow-up, Needs changes, OK minor notes.
 
 **Progress** (field `status` in code): whether you are done with the note. UI label **Where is this?**  
-`draft` → In progress, `decided` → Settled, `open_question` → Still open, `superseded` → Replaced.
+`draft` → In progress, `open_question` → Waiting for clarification, `decided` → Settled, `superseded` → Replaced.
 
 The saved list groups notes by pull request, then by whole PR vs commit.
 

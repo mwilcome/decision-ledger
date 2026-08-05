@@ -55,7 +55,6 @@ export {
   countDecisionMarkers,
   formatChangeLabel,
   formatCommitScopeLabel,
-  formatSaveTarget,
 } from "./display.js";
 
 export { normalizeShaForDisplay } from "./sha.js";

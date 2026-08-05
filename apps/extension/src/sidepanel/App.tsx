@@ -16,7 +16,6 @@ import {
   DecisionForm,
   DecisionList,
   ListFilter,
-  SaveTargetStrip,
   type DecisionFormValues,
   type DecisionListScope,
 } from "@decision-ledger/ui";
@@ -217,7 +216,6 @@ export function App(): ReactElement {
       </header>
 
       <ContextBanner context={context} />
-      <SaveTargetStrip context={context} editing={editing !== null} />
 
       {error ? (
         <p className="dl-app__error" role="alert">

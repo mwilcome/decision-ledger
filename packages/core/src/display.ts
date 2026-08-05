@@ -1,4 +1,4 @@
-import type { CaptureContext, ChangeRef, Decision } from "./types.js";
+import type { ChangeRef, Decision } from "./types.js";
 import { buildChangeKey } from "./context-key.js";
 import { normalizeShaForDisplay } from "./sha.js";
 
@@ -42,35 +42,6 @@ export function formatCommitScopeLabel(headSha: string | undefined): string {
     return "Whole pull request";
   }
   return `Commit ${normalizeShaForDisplay(headSha)}`;
-}
-
-/**
- * Describes where a new note will be saved, based on the open page.
- *
- * @param context - Current page context
- */
-export function formatSaveTarget(context: CaptureContext): {
-  /**
-   * PR/MR line.
-   */
-  changeLine: string;
-  /**
-   * Whole PR vs specific commit.
-   */
-  scopeLine: string;
-  /**
-   * Host product name.
-   */
-  hostLine: string;
-} {
-  const sha = context.revision?.headSha;
-  return {
-    changeLine: formatChangeLabel(context.change),
-    scopeLine: sha
-      ? `This commit only (${normalizeShaForDisplay(sha)})`
-      : "Whole pull request (no single commit selected)",
-    hostLine: context.change.repo.host,
-  };
 }
 
 /**
