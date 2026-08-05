@@ -118,16 +118,17 @@ export function DecisionForm(props: DecisionFormProps): ReactElement {
   }, [mode, initialValues?.body]);
 
   /**
-   * Updates note type and default progress in create mode.
+   * Updates note type and always applies that type's default progress.
+   * Manual Progress changes still work afterward until Type is changed again.
    *
    * @param next - New kind
    */
   function handleKindChange(next: DecisionKind): void {
     setKind(next);
     setEngaged(true);
-    if (!statusTouched && mode === "create") {
-      setStatus(getDefaultStatusForKind(next));
-    }
+    setStatus(getDefaultStatusForKind(next));
+    // Type drove Progress; allow a later Progress tweak without locking forever.
+    setStatusTouched(false);
   }
 
   /**
