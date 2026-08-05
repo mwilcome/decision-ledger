@@ -1,135 +1,99 @@
 # Decision Ledger
 
-A browser extension that saves your code-review decisions while you look at pull requests and merge requests on sites like GitHub and GitLab.
+A browser side panel for **your own code-review notes** while you look at pull requests.
 
-Notes are saved on your computer. Shared TypeScript types describe a change and a decision. Each Git site has a small adapter that reads that site’s URLs and pages.
+Write down questions, risks, blockers, and decisions as you go. Notes stay on **your computer** (this browser profile). They are not posted to GitHub and not uploaded to a server.
 
-| | |
-|---|---|
-| Tools | TypeScript, npm, Vite, React, browser extension (Manifest V3) |
-| Branches | `main` for stable code; `dev/1.0.0` for current work |
-| License | TBD |
+---
 
-## Docs in this repo
+## What you can do
 
-| File | What it covers |
-|------|----------------|
-| [docs/VISION.md](docs/VISION.md) | Why the project exists and what it covers |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the parts fit together and the main data types |
-| [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | How to work in this repository |
-| [docs/ADAPTERS.md](docs/ADAPTERS.md) | How support for each Git site is added |
-| [docs/decisions/](docs/decisions/) | Written records of major technical choices (ADRs) |
+- Open a GitHub pull request and see which change the panel is attached to
+- Save notes on the **whole PR** or on a **specific commit**
+- Mark notes as in progress, waiting for clarification, or settled
+- Filter: this PR, this commit only, or everything you’ve saved
+- Edit or delete notes; settle all open notes on a PR when you’re done
+- Click the PR or commit label to open it in a new tab
+- Switch browser tabs and the panel follows the active PR
 
-These files describe the product and how the code is organized. Notes for a specific release version will live in separate version docs when we publish releases.
+Colors help at a glance: open items lean orange; settled items lean green.
 
-## What the product should do
+---
 
-Works in Chrome-based browsers and Firefox. It should:
+## What works today
 
-- See which pull request or merge request is open
-- Let you create, read, update, and delete decisions linked to that change
-- Store decisions locally in IndexedDB (this browser profile)
-- Filter the list by whole change, current commit, or all saved
-- Put site-specific code in adapters only
-- Still work using only the page URL if the page HTML is hard to read
+| | Supported now |
+|--|----------------|
+| **Browser** | Chrome and other Chromium browsers (Edge, Brave, etc.) |
+| **Site** | [github.com](https://github.com) pull requests |
+| **Data** | Local only (IndexedDB in your browser) |
 
-## Main data types
+### Not in this iteration
 
-The app does not expose a public web API. These types are the shared shapes used in code.
+- Firefox or Safari
+- GitLab, Bitbucket, Azure DevOps, or self-hosted GitHub Enterprise (as a supported product)
+- Cloud sync or sharing notes with teammates
+- Publishing notes as GitHub review comments
 
-```ts
-type HostId = "github" | "gitlab" | "bitbucket" | "azuredevops" | "gitea" | string;
+If something outside this list doesn’t work, that’s expected for now.
 
-interface RepoRef {
-  host: HostId;
-  instanceUrl?: string;
-  owner: string;
-  name: string;
-}
+---
 
-interface ChangeRef {
-  repo: RepoRef;
-  number: number;
-}
+## Install (load it yourself)
 
-interface CaptureContext {
-  change: ChangeRef;
-  revision?: { headSha: string; baseSha?: string };
-  selection?: {
-    path: string;
-    startLine: number;
-    endLine: number;
-    side?: "left" | "right";
-    excerpt?: string;
-  };
-  thread?: { threadId: string; filePath?: string };
-  page: "overview" | "changes" | "commits" | "checks" | "unknown";
-  sourceUrl: string;
-  capturedAt: string;
-}
+This is not published on the Chrome Web Store yet. You build a local copy and load it as an unpacked extension.
 
-type DecisionStatus = "draft" | "decided" | "open_question" | "superseded";
-type DecisionKind = "note" | "question" | "risk" | "block";
+### You need
 
-interface Decision {
-  id: string;
-  context: CaptureContext;
-  status: DecisionStatus;
-  kind: DecisionKind;
-  body: string;
-  tags: string[];
-  supersedes?: string;
-  createdAt: string;
-  updatedAt: string;
-}
+- [Node.js](https://nodejs.org/) (current LTS is fine)
+- Chrome (or another Chromium browser)
+- This project on your machine
 
-interface HostAdapter {
-  readonly id: HostId;
-  readonly displayName: string;
-  matchesOrigin(origin: string): boolean;
-  parseLocation(url: URL, doc?: Document): CaptureContext | null;
-  observe(doc: Document, onChange: (ctx: CaptureContext | null) => void): () => void;
-  getSelectionContext?(doc: Document, ctx: CaptureContext): CaptureContext;
-}
-```
+### Steps (Windows)
 
-## Folder layout
-
-```text
-decision-ledger/
-  README.md
-  docs/                 documentation
-  apps/extension        browser extension entry points
-  packages/core         shared types and decision logic
-  packages/adapters/    one folder per Git site
-  packages/storage      saving and loading decisions
-  packages/ui           React UI
-  packages/shell        small helpers for different browsers
-  tools/fixtures        sample URLs and HTML for tests
-```
-
-## Develop
+In PowerShell:
 
 ```powershell
-git clone https://github.com/mwilcome/decision-ledger.git
-cd decision-ledger
-git checkout dev/1.0.0
+cd path\to\decision-ledger
 npm.cmd install
 npm.cmd run build
 ```
 
-Load the unpacked extension from `apps/extension/dist` in a Chromium browser (Extensions → Developer mode → Load unpacked).
+Then in Chrome:
+
+1. Open `chrome://extensions`
+2. Turn on **Developer mode**
+3. Click **Load unpacked**
+4. Choose the folder: `apps\extension\dist`
+
+Pin **Decision Ledger** from the extensions menu, open a GitHub PR, and open the side panel (extension icon).
+
+### After you change the code
 
 ```powershell
-npm.cmd run dev
+npm.cmd run build
 ```
 
-`dev` rebuilds the extension when files change. Reload the extension in the browser after a rebuild.
+Then click **Reload** on the extension card at `chrome://extensions`.
+
+---
 
 ## Privacy
 
-Decision text stays on the device unless you export it or turn on sync later. The extension asks for site access per site. Do not commit passwords, tokens, or secrets.
+- Notes stay in your browser profile on this device.
+- The extension only needs access to GitHub pages it runs on, plus storage for your notes.
+- There is no account and no backend service for notes.
 
-## Maintainers
+---
 
-- [mwilcome](https://github.com/mwilcome)
+## Tips
+
+- Open a **single commit** in the PR (Files / changes for that commit) to attach a note to that commit.
+- Use **All** to see notes across PRs; use **This page only** (or **This PR**) to focus again.
+- Titles for PRs are learned when you visit the PR page; until then you may see `#N · owner/repo`.
+
+---
+
+## Who maintains this
+
+Built for personal use by [Mike Wilcome](https://github.com/mwilcome).
