@@ -4,6 +4,7 @@ import {
   formatAbsoluteTime,
   formatChangeLabel,
   formatCommitScopeLabel,
+  formatOpenWorkSummary,
   formatRelativeTime,
   getDecisionKindLabel,
   getDecisionStatusLabel,
@@ -11,6 +12,7 @@ import {
   isAttentionDecision,
   isSettledDecision,
   normalizeShaForDisplay,
+  sectionHasAttention,
   sortChangeGroupsCurrentFirst,
 } from "@decision-ledger/core";
 import { useEffect, useState, type ReactElement } from "react";
@@ -53,6 +55,18 @@ export interface DecisionListProps {
    * @param decision - Decision to delete
    */
   onDelete: (decision: Decision) => void;
+
+  /**
+   * Marks all unfinished notes in a PR group as settled.
+   *
+   * @param decisionsInGroup - Notes belonging to that PR
+   */
+  onSettleAllInGroup?: (decisionsInGroup: readonly Decision[]) => void;
+
+  /**
+   * Deletes settled notes older than 30 days (across the visible list).
+   */
+  onDeleteOldSettled?: () => void;
 }
 
 /**
@@ -68,14 +82,23 @@ export function DecisionList(props: DecisionListProps): ReactElement {
     editingId,
     onEdit,
     onDelete,
+    onSettleAllInGroup,
+    onDeleteOldSettled,
   } = props;
 
   /**
-   * Which PR groups are expanded. Missing keys use the default (current open, others closed when multi).
+   * Which PR groups are expanded.
    */
   const [expandedByKey, setExpandedByKey] = useState<Record<string, boolean>>(
     {},
   );
+
+  /**
+   * Which sections (whole / commit) are expanded within groups.
+   */
+  const [sectionExpanded, setSectionExpanded] = useState<
+    Record<string, boolean>
+  >({});
 
   const groups = sortChangeGroupsCurrentFirst(
     groupDecisionsByChange(decisions),
@@ -86,12 +109,8 @@ export function DecisionList(props: DecisionListProps): ReactElement {
     ? buildChangeKey(currentContext.change)
     : null;
 
-  /** Crumbs only when browsing every PR at once. */
   const showCardCrumb = listScope === "all";
 
-  /**
-   * When the open PR changes, expand that group so it is visible under Everything saved.
-   */
   useEffect(() => {
     if (!currentKey) {
       return;
@@ -113,17 +132,16 @@ export function DecisionList(props: DecisionListProps): ReactElement {
   }
 
   /**
-   * Resolves whether a group body is shown.
+   * Whether a PR group is expanded.
    *
-   * @param groupKey - Change group key
-   * @param isCurrent - Whether this group is the open page
+   * @param groupKey - Group key
+   * @param isCurrent - Open page match
    */
-  function isExpanded(groupKey: string, isCurrent: boolean): boolean {
+  function isGroupExpanded(groupKey: string, isCurrent: boolean): boolean {
     const stored = expandedByKey[groupKey];
     if (stored !== undefined) {
       return stored;
     }
-    // Single group: always open. Multiple: current open, others collapsed.
     if (groups.length <= 1) {
       return true;
     }
@@ -131,23 +149,52 @@ export function DecisionList(props: DecisionListProps): ReactElement {
   }
 
   /**
-   * Toggles a group's expanded state.
+   * Whether a section inside a group is expanded.
+   * Defaults: expand if it has attention items; otherwise expand if only one section.
    *
-   * @param groupKey - Change group key
-   * @param isCurrent - Whether this group is the open page
+   * @param sectionKey - Full key groupKey::sectionKey
+   * @param decisionsInSection - Notes in the section
+   * @param sectionCount - Number of sections in the parent group
    */
-  function toggleGroup(groupKey: string, isCurrent: boolean): void {
-    setExpandedByKey((prev) => ({
-      ...prev,
-      [groupKey]: !isExpanded(groupKey, isCurrent),
-    }));
+  function isSectionOpen(
+    sectionKey: string,
+    decisionsInSection: readonly Decision[],
+    sectionCount: number,
+  ): boolean {
+    const stored = sectionExpanded[sectionKey];
+    if (stored !== undefined) {
+      return stored;
+    }
+    if (sectionCount <= 1) {
+      return true;
+    }
+    return sectionHasAttention(decisionsInSection);
   }
 
   return (
     <div className="dl-groups">
+      {onDeleteOldSettled ? (
+        <div className="dl-bulk-bar">
+          <button
+            type="button"
+            className="dl-list__btn"
+            onClick={onDeleteOldSettled}
+          >
+            Delete settled notes older than 30 days
+          </button>
+        </div>
+      ) : null}
+
       {groups.map((group) => {
         const isCurrent = currentKey !== null && group.key === currentKey;
-        const expanded = isExpanded(group.key, isCurrent);
+        const expanded = isGroupExpanded(group.key, isCurrent);
+        const openSummary = formatOpenWorkSummary(
+          group.sections.flatMap((s) => s.decisions),
+        );
+        const unfinished = group.sections
+          .flatMap((s) => s.decisions)
+          .filter((d) => !isSettledDecision(d.status));
+
         const groupClass = [
           "dl-group",
           isCurrent ? "dl-group--current" : "",
@@ -167,7 +214,12 @@ export function DecisionList(props: DecisionListProps): ReactElement {
                 type="button"
                 className="dl-group__toggle"
                 aria-expanded={expanded}
-                onClick={() => toggleGroup(group.key, isCurrent)}
+                onClick={() =>
+                  setExpandedByKey((prev) => ({
+                    ...prev,
+                    [group.key]: !isGroupExpanded(group.key, isCurrent),
+                  }))
+                }
               >
                 <span className="dl-group__chevron" aria-hidden="true">
                   {expanded ? "▼" : "▶"}
@@ -179,6 +231,13 @@ export function DecisionList(props: DecisionListProps): ReactElement {
                   ) : null}
                 </span>
               </button>
+              {openSummary ? (
+                <p className="dl-group__summary">{openSummary}</p>
+              ) : (
+                <p className="dl-group__summary dl-group__summary--quiet">
+                  No open work
+                </p>
+              )}
               <p className="dl-group__chips" aria-label="Summary">
                 <span className="dl-chip">{group.counts.total} total</span>
                 {group.counts.needsAttention > 0 ? (
@@ -197,26 +256,74 @@ export function DecisionList(props: DecisionListProps): ReactElement {
                   </span>
                 ) : null}
               </p>
+              {expanded &&
+              onSettleAllInGroup &&
+              unfinished.length > 0 &&
+              isCurrent ? (
+                <div className="dl-group__actions">
+                  <button
+                    type="button"
+                    className="dl-list__btn"
+                    onClick={() => onSettleAllInGroup(unfinished)}
+                  >
+                    Mark all open notes settled
+                  </button>
+                </div>
+              ) : null}
             </header>
 
             {expanded
-              ? group.sections.map((section) => (
-                  <div key={section.key} className="dl-section">
-                    <h4 className="dl-section__title">{section.title}</h4>
-                    <ul className="dl-list">
-                      {section.decisions.map((decision) => (
-                        <DecisionCard
-                          key={decision.id}
-                          decision={decision}
-                          showCrumb={showCardCrumb}
-                          isEditing={editingId === decision.id}
-                          onEdit={onEdit}
-                          onDelete={onDelete}
-                        />
-                      ))}
-                    </ul>
-                  </div>
-                ))
+              ? group.sections
+                  .filter((section) => section.decisions.length > 0)
+                  .map((section) => {
+                    const fullSectionKey = `${group.key}::${section.key}`;
+                    const sectionOpen = isSectionOpen(
+                      fullSectionKey,
+                      section.decisions,
+                      group.sections.length,
+                    );
+
+                    return (
+                      <div key={section.key} className="dl-section">
+                        <button
+                          type="button"
+                          className="dl-section__toggle"
+                          aria-expanded={sectionOpen}
+                          onClick={() =>
+                            setSectionExpanded((prev) => ({
+                              ...prev,
+                              [fullSectionKey]: !sectionOpen,
+                            }))
+                          }
+                        >
+                          <span className="dl-group__chevron" aria-hidden="true">
+                            {sectionOpen ? "▼" : "▶"}
+                          </span>
+                          <span className="dl-section__title">
+                            {section.title}
+                            <span className="dl-section__count">
+                              {" "}
+                              ({section.decisions.length})
+                            </span>
+                          </span>
+                        </button>
+                        {sectionOpen ? (
+                          <ul className="dl-list">
+                            {section.decisions.map((decision) => (
+                              <DecisionCard
+                                key={decision.id}
+                                decision={decision}
+                                showCrumb={showCardCrumb}
+                                isEditing={editingId === decision.id}
+                                onEdit={onEdit}
+                                onDelete={onDelete}
+                              />
+                            ))}
+                          </ul>
+                        ) : null}
+                      </div>
+                    );
+                  })
               : null}
           </section>
         );
@@ -235,7 +342,7 @@ interface DecisionCardProps {
   decision: Decision;
 
   /**
-   * When true, show PR → scope crumb (used for Everything saved).
+   * When true, show PR → scope crumb.
    */
   showCrumb: boolean;
 
@@ -256,7 +363,7 @@ interface DecisionCardProps {
 }
 
 /**
- * One note card with type, progress, body, and actions.
+ * One note card: body first, type as caption, progress via bar + quiet label.
  *
  * @param props - Card props
  */
@@ -290,6 +397,7 @@ function DecisionCard(props: DecisionCardProps): ReactElement {
           )}
         </p>
       ) : null}
+      <p className="dl-list__body">{decision.body}</p>
       <header className="dl-list__header">
         <span className="dl-list__kind">
           {getDecisionKindLabel(decision.kind)}
@@ -304,7 +412,6 @@ function DecisionCard(props: DecisionCardProps): ReactElement {
           {getDecisionStatusLabel(decision.status)}
         </span>
       </header>
-      <p className="dl-list__body">{decision.body}</p>
       <footer className="dl-list__footer">
         <span className="dl-list__when" title={absolute}>
           {relative}

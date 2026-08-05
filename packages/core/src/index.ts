@@ -43,12 +43,15 @@ export {
   DECISION_KIND_OPTIONS,
   DECISION_STATUS_OPTIONS,
   DECISION_STATUS_OPTIONS_CREATE,
+  attentionSortRank,
+  formatOpenWorkSummary,
   getDecisionKindHint,
   getDecisionKindLabel,
   getDecisionStatusLabel,
   getDefaultStatusForKind,
   isAttentionDecision,
   isSettledDecision,
+  sortDecisionsAttentionFirst,
 } from "./labels.js";
 
 export {
@@ -65,6 +68,7 @@ export { formatAbsoluteTime, formatRelativeTime } from "./time.js";
 
 export {
   groupDecisionsByChange,
+  sectionHasAttention,
   sortChangeGroupsCurrentFirst,
 } from "./group.js";
 export type { DecisionChangeGroup, DecisionSection } from "./group.js";

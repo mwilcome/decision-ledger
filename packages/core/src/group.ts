@@ -5,6 +5,10 @@ import {
   formatChangeLabel,
   formatCommitScopeLabel,
 } from "./display.js";
+import {
+  isAttentionDecision,
+  sortDecisionsAttentionFirst,
+} from "./labels.js";
 import { normalizeShaForDisplay } from "./sha.js";
 
 /**
@@ -157,7 +161,7 @@ function buildSections(decisions: readonly Decision[]): DecisionSection[] {
     sections.push({
       key: "whole",
       title: formatCommitScopeLabel(undefined),
-      decisions: sortByUpdated(whole),
+      decisions: sortDecisionsAttentionFirst(whole),
     });
   }
 
@@ -165,7 +169,7 @@ function buildSections(decisions: readonly Decision[]): DecisionSection[] {
     .map(([sha, list]) => ({
       key: sha,
       title: formatCommitScopeLabel(sha),
-      decisions: sortByUpdated(list),
+      decisions: sortDecisionsAttentionFirst(list),
       newest: list.reduce(
         (max, d) => (d.updatedAt > max ? d.updatedAt : max),
         list[0]?.updatedAt ?? "",
@@ -174,6 +178,10 @@ function buildSections(decisions: readonly Decision[]): DecisionSection[] {
     .sort((a, b) => b.newest.localeCompare(a.newest));
 
   for (const section of commitSections) {
+    // Skip empty commit buckets (defensive; map entries always have items).
+    if (section.decisions.length === 0) {
+      continue;
+    }
     sections.push({
       key: section.key,
       title: section.title,
@@ -185,12 +193,12 @@ function buildSections(decisions: readonly Decision[]): DecisionSection[] {
 }
 
 /**
- * Newest-first by updatedAt.
+ * Returns true when any note in the list still needs attention.
  *
- * @param decisions - List to sort
+ * @param decisions - Notes in a section
  */
-function sortByUpdated(decisions: Decision[]): Decision[] {
-  return [...decisions].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+export function sectionHasAttention(decisions: readonly Decision[]): boolean {
+  return decisions.some((d) => isAttentionDecision(d.kind, d.status));
 }
 
 /**

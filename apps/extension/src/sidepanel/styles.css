@@ -134,6 +134,13 @@ body {
   color: #fff;
 }
 
+.dl-form__submit--quiet {
+  background: transparent;
+  color: inherit;
+  border: 1px solid color-mix(in srgb, CanvasText 28%, transparent);
+  font-weight: 500;
+}
+
 .dl-form__submit:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -184,6 +191,58 @@ body {
   font-size: 0.75rem;
   opacity: 0.85;
   font-weight: 400;
+}
+
+.dl-filter__link {
+  margin: 6px 0 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #2563eb;
+  font: inherit;
+  font-size: 0.8rem;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.dl-bulk-bar {
+  margin-bottom: 4px;
+}
+
+.dl-group__summary {
+  margin: 6px 0 0;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.dl-group__summary--quiet {
+  opacity: 0.75;
+  font-weight: 400;
+}
+
+.dl-group__actions {
+  margin-top: 8px;
+}
+
+.dl-section__toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  margin: 0 0 6px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dl-section__count {
+  font-weight: 400;
+  opacity: 0.75;
 }
 
 .dl-groups {
@@ -293,7 +352,7 @@ body {
 }
 
 .dl-section__title {
-  margin: 0 0 6px;
+  margin: 0;
   font-size: 0.8rem;
   font-weight: 600;
   opacity: 0.9;
@@ -362,17 +421,20 @@ body {
   display: flex;
   justify-content: space-between;
   gap: 8px;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
+  margin-top: 4px;
+  opacity: 0.9;
 }
 
 .dl-list__kind {
-  font-weight: 700;
-  font-size: 0.85rem;
+  font-weight: 600;
+  font-size: 0.75rem;
+  opacity: 0.9;
 }
 
 .dl-list__status {
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 0.7rem;
+  font-weight: 500;
   padding: 1px 6px;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, CanvasText 18%, transparent);
@@ -384,14 +446,14 @@ body {
 }
 
 .dl-list__status--settled {
-  opacity: 0.85;
-  font-weight: 500;
+  opacity: 0.8;
+  font-weight: 400;
 }
 
 .dl-list__body {
-  margin: 8px 0 6px;
+  margin: 0;
   white-space: pre-wrap;
-  font-size: 0.92rem;
+  font-size: 0.95rem;
   font-weight: 500;
   line-height: 1.45;
 }

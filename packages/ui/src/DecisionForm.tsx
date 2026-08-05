@@ -6,7 +6,13 @@ import {
   getDecisionKindHint,
   getDefaultStatusForKind,
 } from "@decision-ledger/core";
-import { useEffect, useState, type FormEvent, type ReactElement } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+  type ReactElement,
+} from "react";
 
 /**
  * Values submitted when the user creates or updates a note.
@@ -68,12 +74,19 @@ export interface DecisionFormProps {
 export function DecisionForm(props: DecisionFormProps): ReactElement {
   const { enabled, mode, initialValues, onSubmit, onCancel } = props;
 
+  /** Root form element for scroll-into-view on edit. */
+  const formRef = useRef<HTMLFormElement>(null);
+
+  /** Textarea for focus when entering edit mode. */
+  const bodyRef = useRef<HTMLTextAreaElement>(null);
+
   /** Note type. */
   const [kind, setKind] = useState<DecisionKind>(initialValues?.kind ?? "note");
 
   /** Progress. */
   const [status, setStatus] = useState<DecisionStatus>(
-    initialValues?.status ?? getDefaultStatusForKind(initialValues?.kind ?? "note"),
+    initialValues?.status ??
+      getDefaultStatusForKind(initialValues?.kind ?? "note"),
   );
 
   /** Whether the user manually changed progress (stops auto-default from type). */
@@ -83,17 +96,34 @@ export function DecisionForm(props: DecisionFormProps): ReactElement {
   const [body, setBody] = useState(initialValues?.body ?? "");
 
   /**
+   * True when the user is actively writing (or editing), so Save stays primary.
+   */
+  const [engaged, setEngaged] = useState(mode === "edit");
+
+  /**
    * Resets fields when switching create/edit target.
    */
   useEffect(() => {
     const nextKind = initialValues?.kind ?? "note";
     setKind(nextKind);
-    setStatus(
-      initialValues?.status ?? getDefaultStatusForKind(nextKind),
-    );
+    setStatus(initialValues?.status ?? getDefaultStatusForKind(nextKind));
     setBody(initialValues?.body ?? "");
     setStatusTouched(mode === "edit");
+    setEngaged(mode === "edit" || Boolean(initialValues?.body));
   }, [mode, initialValues?.kind, initialValues?.status, initialValues?.body]);
+
+  /**
+   * Scrolls the form into view and focuses the note body when editing starts.
+   */
+  useEffect(() => {
+    if (mode !== "edit") {
+      return;
+    }
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.setTimeout(() => {
+      bodyRef.current?.focus();
+    }, 50);
+  }, [mode, initialValues?.body]);
 
   /**
    * Updates note type and optionally progress default in create mode.
@@ -102,6 +132,7 @@ export function DecisionForm(props: DecisionFormProps): ReactElement {
    */
   function handleKindChange(next: DecisionKind): void {
     setKind(next);
+    setEngaged(true);
     if (!statusTouched && mode === "create") {
       setStatus(getDefaultStatusForKind(next));
     }
@@ -124,14 +155,26 @@ export function DecisionForm(props: DecisionFormProps): ReactElement {
       setKind("note");
       setStatus(getDefaultStatusForKind("note"));
       setStatusTouched(false);
+      setEngaged(false);
     }
   }
 
   const statusOptions =
     mode === "create" ? DECISION_STATUS_OPTIONS_CREATE : DECISION_STATUS_OPTIONS;
 
+  const submitClass =
+    mode === "edit" || engaged
+      ? "dl-form__submit"
+      : "dl-form__submit dl-form__submit--quiet";
+
   return (
-    <form className="dl-form" onSubmit={handleSubmit}>
+    <form
+      id="dl-note-form"
+      ref={formRef}
+      className="dl-form"
+      onSubmit={handleSubmit}
+      onFocusCapture={() => setEngaged(true)}
+    >
       {mode === "edit" ? (
         <p className="dl-form__mode" aria-live="polite">
           Editing this note
@@ -169,6 +212,7 @@ export function DecisionForm(props: DecisionFormProps): ReactElement {
           disabled={!enabled}
           onChange={(e) => {
             setStatusTouched(true);
+            setEngaged(true);
             setStatus(e.target.value as DecisionStatus);
           }}
         >
@@ -187,17 +231,21 @@ export function DecisionForm(props: DecisionFormProps): ReactElement {
       <label className="dl-form__label">
         Your note
         <textarea
+          ref={bodyRef}
           className="dl-form__textarea"
           value={body}
           disabled={!enabled}
           rows={4}
           placeholder="Write the decision or question in plain language."
-          onChange={(e) => setBody(e.target.value)}
+          onChange={(e) => {
+            setEngaged(true);
+            setBody(e.target.value);
+          }}
         />
       </label>
 
       <div className="dl-form__actions">
-        <button className="dl-form__submit" type="submit" disabled={!enabled}>
+        <button className={submitClass} type="submit" disabled={!enabled}>
           {mode === "edit" ? "Update note" : "Save note"}
         </button>
         {mode === "edit" && onCancel ? (

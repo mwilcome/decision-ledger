@@ -1,5 +1,5 @@
 /**
- * Side panel: page context, save target, plain-language form, grouped notes.
+ * Side panel: page context, form, grouped notes with review-friendly polish.
  */
 
 import type { CaptureContext, Decision } from "@decision-ledger/core";
@@ -8,6 +8,7 @@ import {
   createDecision,
   decisionMatchesChange,
   decisionMatchesCommit,
+  isSettledDecision,
   updateDecision,
 } from "@decision-ledger/core";
 import { sendMessage } from "@decision-ledger/shell";
@@ -38,6 +39,9 @@ interface ContextGetResponse {
   context?: CaptureContext | null;
 }
 
+/** Settled notes older than this are eligible for bulk delete. */
+const SETTLED_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
+
 /**
  * Root React component for the extension side panel.
  */
@@ -64,7 +68,6 @@ export function App(): ReactElement {
 
   /**
    * Fingerprint of the open page (PR + optional commit).
-   * Used so filter auto-select runs when navigation changes, not on every poll.
    */
   const pageFingerprint = useMemo(() => {
     if (!context) {
@@ -113,13 +116,7 @@ export function App(): ReactElement {
   }, [refreshContext, refreshDecisions]);
 
   /**
-   * Auto-selects the list filter from the open page:
-   * - single commit URL → This commit only
-   * - PR/MR page without a specific commit → This pull request
-   * - not on a supported change page → Everything saved
-   *
-   * Runs when the page fingerprint changes (new PR or commit), so a manual
-   * filter choice is kept until you navigate.
+   * Auto-selects filter: commit page → this commit; PR page → this PR; else all.
    */
   useEffect(() => {
     if (!pageFingerprint || !context) {
@@ -134,7 +131,7 @@ export function App(): ReactElement {
   }, [pageFingerprint, context]);
 
   /**
-   * Notes visible under the current filter (then grouped in the list UI).
+   * Notes visible under the current filter.
    */
   const visibleDecisions = useMemo(() => {
     if (scope === "all" || !context) {
@@ -183,7 +180,7 @@ export function App(): ReactElement {
   }
 
   /**
-   * Opens a note in the edit form.
+   * Opens a note in the edit form (form scrolls into view via DecisionForm).
    *
    * @param decision - Note to edit
    */
@@ -223,6 +220,78 @@ export function App(): ReactElement {
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to delete note");
+    }
+  }
+
+  /**
+   * Marks unfinished notes in a PR group as settled.
+   *
+   * @param unfinished - Notes that are not settled yet
+   */
+  async function handleSettleAllInGroup(
+    unfinished: readonly Decision[],
+  ): Promise<void> {
+    if (unfinished.length === 0) {
+      return;
+    }
+    const ok = window.confirm(
+      `Mark ${unfinished.length} open note(s) as settled?`,
+    );
+    if (!ok) {
+      return;
+    }
+    try {
+      for (const decision of unfinished) {
+        const updated = updateDecision(decision, { status: "decided" });
+        await store.save(updated);
+      }
+      if (editing && unfinished.some((d) => d.id === editing.id)) {
+        setEditing(null);
+      }
+      await refreshDecisions();
+      setError(null);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to settle notes",
+      );
+    }
+  }
+
+  /**
+   * Deletes settled notes older than 30 days from the full store.
+   */
+  async function handleDeleteOldSettled(): Promise<void> {
+    const cutoff = Date.now() - SETTLED_MAX_AGE_MS;
+    const oldSettled = decisions.filter((d) => {
+      if (!isSettledDecision(d.status)) {
+        return false;
+      }
+      const t = Date.parse(d.updatedAt);
+      return !Number.isNaN(t) && t < cutoff;
+    });
+    if (oldSettled.length === 0) {
+      window.alert("No settled notes older than 30 days.");
+      return;
+    }
+    const ok = window.confirm(
+      `Delete ${oldSettled.length} settled note(s) older than 30 days? This cannot be undone.`,
+    );
+    if (!ok) {
+      return;
+    }
+    try {
+      for (const decision of oldSettled) {
+        await store.remove(decision.id);
+      }
+      if (editing && oldSettled.some((d) => d.id === editing.id)) {
+        setEditing(null);
+      }
+      await refreshDecisions();
+      setError(null);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to delete old notes",
+      );
     }
   }
 
@@ -277,6 +346,8 @@ export function App(): ReactElement {
           editingId={editing?.id}
           onEdit={handleEdit}
           onDelete={(d) => void handleDelete(d)}
+          onSettleAllInGroup={(list) => void handleSettleAllInGroup(list)}
+          onDeleteOldSettled={() => void handleDeleteOldSettled()}
         />
       </section>
     </div>

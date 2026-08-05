@@ -1,4 +1,4 @@
-import type { DecisionKind, DecisionStatus } from "./types.js";
+import type { Decision, DecisionKind, DecisionStatus } from "./types.js";
 
 /**
  * Plain-language label for a note type (stored as `kind`).
@@ -202,4 +202,101 @@ export function isAttentionDecision(
  */
 export function isSettledDecision(status: DecisionStatus): boolean {
   return status === "decided" || status === "superseded";
+}
+
+/**
+ * Sort weight for "needs eyes first" lists (lower sorts earlier).
+ *
+ * @param kind - Note type
+ * @param status - Progress
+ */
+export function attentionSortRank(
+  kind: DecisionKind,
+  status: DecisionStatus,
+): number {
+  if (status === "superseded") {
+    return 50;
+  }
+  if (kind === "block") {
+    return 0;
+  }
+  if (status === "open_question" || kind === "question") {
+    return 1;
+  }
+  if (status === "draft") {
+    return 2;
+  }
+  if (status === "decided") {
+    return 40;
+  }
+  return 30;
+}
+
+/**
+ * Sorts notes so unfinished / blocking items appear before settled ones.
+ * Within the same rank, newest `updatedAt` first.
+ *
+ * @param decisions - Notes to sort
+ */
+export function sortDecisionsAttentionFirst(
+  decisions: readonly Decision[],
+): Decision[] {
+  return [...decisions].sort((a, b) => {
+    const rank =
+      attentionSortRank(a.kind, a.status) -
+      attentionSortRank(b.kind, b.status);
+    if (rank !== 0) {
+      return rank;
+    }
+    return b.updatedAt.localeCompare(a.updatedAt);
+  });
+}
+
+/**
+ * One-line summary of open work for a set of notes.
+ *
+ * @param decisions - Notes in a PR group
+ */
+export function formatOpenWorkSummary(
+  decisions: readonly Decision[],
+): string | null {
+  let open = 0;
+  let waiting = 0;
+  let blocking = 0;
+
+  for (const d of decisions) {
+    if (d.kind === "block" && d.status !== "decided" && d.status !== "superseded") {
+      blocking += 1;
+    }
+    if (d.status === "open_question" || d.kind === "question") {
+      if (d.status !== "decided" && d.status !== "superseded") {
+        waiting += 1;
+      }
+    }
+    if (
+      d.status === "draft" ||
+      d.status === "open_question" ||
+      (d.kind === "block" && d.status !== "decided" && d.status !== "superseded")
+    ) {
+      open += 1;
+    }
+  }
+
+  if (open === 0 && waiting === 0 && blocking === 0) {
+    return null;
+  }
+
+  const parts: string[] = [];
+  if (open > 0) {
+    parts.push(`${open} open`);
+  }
+  if (waiting > 0) {
+    parts.push(
+      `${waiting} waiting for clarification`,
+    );
+  }
+  if (blocking > 0) {
+    parts.push(`${blocking} needs changes`);
+  }
+  return parts.join(" · ");
 }

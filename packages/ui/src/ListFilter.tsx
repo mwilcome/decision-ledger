@@ -74,8 +74,17 @@ export function ListFilter(props: ListFilterProps): ReactElement {
       </label>
       {!commitAvailable ? (
         <p className="dl-filter__hint">
-          Open a single commit to filter by commit.
+          Pick a commit in the PR to use this.
         </p>
+      ) : null}
+      {scope === "all" && changeAvailable ? (
+        <button
+          type="button"
+          className="dl-filter__link"
+          onClick={() => onChange("change")}
+        >
+          Show only this page
+        </button>
       ) : null}
     </div>
   );
