@@ -28,9 +28,23 @@ export interface ContextGetMessage {
 }
 
 /**
+ * Background asks the active tab's content script to re-publish page context.
+ * Used when the user switches browser tabs.
+ */
+export interface ContextRefreshMessage {
+  /**
+   * Discriminator for this message kind.
+   */
+  type: "context.refresh";
+}
+
+/**
  * Union of extension runtime messages used in the scaffold.
  */
-export type ExtensionMessage = ContextUpdatedMessage | ContextGetMessage;
+export type ExtensionMessage =
+  | ContextUpdatedMessage
+  | ContextGetMessage
+  | ContextRefreshMessage;
 
 /**
  * Type guard for {@link ContextUpdatedMessage}.
@@ -50,6 +64,17 @@ export function isContextUpdatedMessage(
  */
 export function isContextGetMessage(value: unknown): value is ContextGetMessage {
   return isObject(value) && value["type"] === "context.get";
+}
+
+/**
+ * Type guard for {@link ContextRefreshMessage}.
+ *
+ * @param value - Unknown message payload
+ */
+export function isContextRefreshMessage(
+  value: unknown,
+): value is ContextRefreshMessage {
+  return isObject(value) && value["type"] === "context.refresh";
 }
 
 /**

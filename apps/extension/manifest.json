@@ -3,7 +3,7 @@
   "name": "Decision Ledger",
   "description": "Record code-review decisions on pull requests and merge requests.",
   "version": "0.1.0",
-  "permissions": ["storage", "sidePanel"],
+  "permissions": ["storage", "sidePanel", "tabs"],
   "host_permissions": [
     "https://github.com/*",
     "https://gitlab.com/*"
