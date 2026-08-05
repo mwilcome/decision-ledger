@@ -1,8 +1,10 @@
 import type { CaptureContext, Decision } from "@decision-ledger/core";
 import {
   buildChangeKey,
+  formatAbsoluteTime,
   formatChangeLabel,
   formatCommitScopeLabel,
+  formatRelativeTime,
   getDecisionKindLabel,
   getDecisionStatusLabel,
   groupDecisionsByChange,
@@ -11,7 +13,7 @@ import {
   normalizeShaForDisplay,
   sortChangeGroupsCurrentFirst,
 } from "@decision-ledger/core";
-import type { ReactElement } from "react";
+import { useEffect, useState, type ReactElement } from "react";
 import type { DecisionListScope } from "./ListFilter.js";
 
 /**
@@ -68,13 +70,12 @@ export function DecisionList(props: DecisionListProps): ReactElement {
     onDelete,
   } = props;
 
-  if (decisions.length === 0) {
-    return (
-      <p className="dl-list-empty" aria-live="polite">
-        No notes in this view yet.
-      </p>
-    );
-  }
+  /**
+   * Which PR groups are expanded. Missing keys use the default (current open, others closed when multi).
+   */
+  const [expandedByKey, setExpandedByKey] = useState<Record<string, boolean>>(
+    {},
+  );
 
   const groups = sortChangeGroupsCurrentFirst(
     groupDecisionsByChange(decisions),
@@ -85,16 +86,75 @@ export function DecisionList(props: DecisionListProps): ReactElement {
     ? buildChangeKey(currentContext.change)
     : null;
 
-  /** Crumbs only when browsing every PR at once (group headers already name the PR). */
+  /** Crumbs only when browsing every PR at once. */
   const showCardCrumb = listScope === "all";
+
+  /**
+   * When the open PR changes, expand that group so it is visible under Everything saved.
+   */
+  useEffect(() => {
+    if (!currentKey) {
+      return;
+    }
+    setExpandedByKey((prev) => {
+      if (prev[currentKey] === true) {
+        return prev;
+      }
+      return { ...prev, [currentKey]: true };
+    });
+  }, [currentKey]);
+
+  if (decisions.length === 0) {
+    return (
+      <p className="dl-list-empty" aria-live="polite">
+        No notes in this view yet.
+      </p>
+    );
+  }
+
+  /**
+   * Resolves whether a group body is shown.
+   *
+   * @param groupKey - Change group key
+   * @param isCurrent - Whether this group is the open page
+   */
+  function isExpanded(groupKey: string, isCurrent: boolean): boolean {
+    const stored = expandedByKey[groupKey];
+    if (stored !== undefined) {
+      return stored;
+    }
+    // Single group: always open. Multiple: current open, others collapsed.
+    if (groups.length <= 1) {
+      return true;
+    }
+    return isCurrent;
+  }
+
+  /**
+   * Toggles a group's expanded state.
+   *
+   * @param groupKey - Change group key
+   * @param isCurrent - Whether this group is the open page
+   */
+  function toggleGroup(groupKey: string, isCurrent: boolean): void {
+    setExpandedByKey((prev) => ({
+      ...prev,
+      [groupKey]: !isExpanded(groupKey, isCurrent),
+    }));
+  }
 
   return (
     <div className="dl-groups">
       {groups.map((group) => {
         const isCurrent = currentKey !== null && group.key === currentKey;
-        const groupClass = isCurrent
-          ? "dl-group dl-group--current"
-          : "dl-group";
+        const expanded = isExpanded(group.key, isCurrent);
+        const groupClass = [
+          "dl-group",
+          isCurrent ? "dl-group--current" : "",
+          expanded ? "" : "dl-group--collapsed",
+        ]
+          .filter(Boolean)
+          .join(" ");
 
         return (
           <section
@@ -103,12 +163,22 @@ export function DecisionList(props: DecisionListProps): ReactElement {
             aria-current={isCurrent ? "true" : undefined}
           >
             <header className="dl-group__header">
-              <div className="dl-group__title-row">
-                <h3 className="dl-group__title">{group.title}</h3>
-                {isCurrent ? (
-                  <span className="dl-chip dl-chip--current">This page</span>
-                ) : null}
-              </div>
+              <button
+                type="button"
+                className="dl-group__toggle"
+                aria-expanded={expanded}
+                onClick={() => toggleGroup(group.key, isCurrent)}
+              >
+                <span className="dl-group__chevron" aria-hidden="true">
+                  {expanded ? "▼" : "▶"}
+                </span>
+                <span className="dl-group__title-row">
+                  <span className="dl-group__title">{group.title}</span>
+                  {isCurrent ? (
+                    <span className="dl-chip dl-chip--current">This page</span>
+                  ) : null}
+                </span>
+              </button>
               <p className="dl-group__chips" aria-label="Summary">
                 <span className="dl-chip">{group.counts.total} total</span>
                 {group.counts.needsAttention > 0 ? (
@@ -129,23 +199,25 @@ export function DecisionList(props: DecisionListProps): ReactElement {
               </p>
             </header>
 
-            {group.sections.map((section) => (
-              <div key={section.key} className="dl-section">
-                <h4 className="dl-section__title">{section.title}</h4>
-                <ul className="dl-list">
-                  {section.decisions.map((decision) => (
-                    <DecisionCard
-                      key={decision.id}
-                      decision={decision}
-                      showCrumb={showCardCrumb}
-                      isEditing={editingId === decision.id}
-                      onEdit={onEdit}
-                      onDelete={onDelete}
-                    />
-                  ))}
-                </ul>
-              </div>
-            ))}
+            {expanded
+              ? group.sections.map((section) => (
+                  <div key={section.key} className="dl-section">
+                    <h4 className="dl-section__title">{section.title}</h4>
+                    <ul className="dl-list">
+                      {section.decisions.map((decision) => (
+                        <DecisionCard
+                          key={decision.id}
+                          decision={decision}
+                          showCrumb={showCardCrumb}
+                          isEditing={editingId === decision.id}
+                          onEdit={onEdit}
+                          onDelete={onDelete}
+                        />
+                      ))}
+                    </ul>
+                  </div>
+                ))
+              : null}
           </section>
         );
       })}
@@ -193,6 +265,8 @@ function DecisionCard(props: DecisionCardProps): ReactElement {
   const attention = isAttentionDecision(decision.kind, decision.status);
   const settled = isSettledDecision(decision.status);
   const sha = decision.context.revision?.headSha;
+  const absolute = formatAbsoluteTime(decision.updatedAt);
+  const relative = formatRelativeTime(decision.updatedAt);
 
   const classNames = [
     "dl-list__item",
@@ -200,6 +274,7 @@ function DecisionCard(props: DecisionCardProps): ReactElement {
     attention ? "dl-list__item--attention" : "",
     settled ? "dl-list__item--settled" : "",
     decision.kind === "block" ? "dl-list__item--block" : "",
+    decision.status === "open_question" ? "dl-list__item--waiting" : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -219,13 +294,21 @@ function DecisionCard(props: DecisionCardProps): ReactElement {
         <span className="dl-list__kind">
           {getDecisionKindLabel(decision.kind)}
         </span>
-        <span className="dl-list__status">
+        <span
+          className={
+            settled
+              ? "dl-list__status dl-list__status--settled"
+              : "dl-list__status dl-list__status--active"
+          }
+        >
           {getDecisionStatusLabel(decision.status)}
         </span>
       </header>
       <p className="dl-list__body">{decision.body}</p>
       <footer className="dl-list__footer">
-        <span className="dl-list__when">{formatWhen(decision.updatedAt)}</span>
+        <span className="dl-list__when" title={absolute}>
+          {relative}
+        </span>
         <span className="dl-list__actions">
           <button
             type="button"
@@ -245,17 +328,4 @@ function DecisionCard(props: DecisionCardProps): ReactElement {
       </footer>
     </li>
   );
-}
-
-/**
- * Formats an ISO timestamp for a short list footer.
- *
- * @param iso - ISO-8601 string
- */
-function formatWhen(iso: string): string {
-  try {
-    return new Date(iso).toLocaleString();
-  } catch {
-    return iso;
-  }
 }

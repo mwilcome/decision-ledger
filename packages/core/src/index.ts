@@ -61,6 +61,8 @@ export {
 
 export { normalizeShaForDisplay } from "./sha.js";
 
+export { formatAbsoluteTime, formatRelativeTime } from "./time.js";
+
 export {
   groupDecisionsByChange,
   sortChangeGroupsCurrentFirst,

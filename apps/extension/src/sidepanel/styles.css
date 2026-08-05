@@ -209,17 +209,45 @@ body {
   margin-bottom: 8px;
 }
 
+.dl-group__toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dl-group__chevron {
+  flex-shrink: 0;
+  margin-top: 2px;
+  font-size: 0.7rem;
+  opacity: 0.8;
+}
+
 .dl-group__title-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
+  min-width: 0;
 }
 
 .dl-group__title {
   margin: 0;
   font-size: 0.95rem;
+  font-weight: 600;
   word-break: break-word;
+}
+
+.dl-group--collapsed .dl-group__header {
+  margin-bottom: 0;
 }
 
 .dl-chip--current {
@@ -290,18 +318,32 @@ body {
 .dl-list__item--editing {
   border-color: #2563eb;
   box-shadow: 0 0 0 1px color-mix(in srgb, #2563eb 40%, transparent);
+  opacity: 1;
 }
 
 .dl-list__item--attention {
   border-left: 4px solid #d97706;
+  background: color-mix(in srgb, #d97706 6%, Canvas);
+}
+
+.dl-list__item--waiting {
+  border-left: 4px solid #ca8a04;
 }
 
 .dl-list__item--block {
   border-left: 4px solid #dc2626;
+  background: color-mix(in srgb, #dc2626 7%, Canvas);
 }
 
 .dl-list__item--settled {
-  opacity: 0.78;
+  opacity: 0.62;
+  border-left: 4px solid color-mix(in srgb, CanvasText 15%, transparent);
+  background: color-mix(in srgb, CanvasText 3%, Canvas);
+}
+
+.dl-list__item--settled .dl-list__body {
+  font-weight: 400;
+  opacity: 0.9;
 }
 
 .dl-list__crumb {
@@ -324,16 +366,34 @@ body {
 }
 
 .dl-list__kind {
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 0.85rem;
 }
 
 .dl-list__status {
-  opacity: 0.9;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, CanvasText 18%, transparent);
+}
+
+.dl-list__status--active {
+  border-color: color-mix(in srgb, #d97706 50%, transparent);
+  background: color-mix(in srgb, #d97706 12%, Canvas);
+}
+
+.dl-list__status--settled {
+  opacity: 0.85;
+  font-weight: 500;
 }
 
 .dl-list__body {
-  margin: 6px 0;
+  margin: 8px 0 6px;
   white-space: pre-wrap;
+  font-size: 0.92rem;
+  font-weight: 500;
+  line-height: 1.45;
 }
 
 .dl-list__footer {

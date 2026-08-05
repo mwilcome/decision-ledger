@@ -4,6 +4,7 @@
 
 import type { CaptureContext, Decision } from "@decision-ledger/core";
 import {
+  buildChangeKey,
   createDecision,
   decisionMatchesChange,
   decisionMatchesCommit,
@@ -23,7 +24,6 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
   type ReactElement,
 } from "react";
@@ -63,10 +63,17 @@ export function App(): ReactElement {
   const [error, setError] = useState<string | null>(null);
 
   /**
-   * Tracks whether the last poll had a PR/MR page, so we only reset the
-   * filter when entering or leaving a change page (not on every context tick).
+   * Fingerprint of the open page (PR + optional commit).
+   * Used so filter auto-select runs when navigation changes, not on every poll.
    */
-  const hadChangePageRef = useRef(false);
+  const pageFingerprint = useMemo(() => {
+    if (!context) {
+      return "";
+    }
+    const changePart = buildChangeKey(context.change);
+    const shaPart = context.revision?.headSha?.toLowerCase() ?? "";
+    return `${changePart}|${shaPart}`;
+  }, [context]);
 
   /**
    * Reloads notes from IndexedDB.
@@ -106,28 +113,25 @@ export function App(): ReactElement {
   }, [refreshContext, refreshDecisions]);
 
   /**
-   * Defaults the list filter to this pull request when you open a change page,
-   * and to everything saved when you leave change pages.
-   * Does not override a manual "Everything saved" choice while you stay on PRs.
+   * Auto-selects the list filter from the open page:
+   * - single commit URL → This commit only
+   * - PR/MR page without a specific commit → This pull request
+   * - not on a supported change page → Everything saved
+   *
+   * Runs when the page fingerprint changes (new PR or commit), so a manual
+   * filter choice is kept until you navigate.
    */
   useEffect(() => {
-    if (!context) {
-      hadChangePageRef.current = false;
+    if (!pageFingerprint || !context) {
       setScope("all");
       return;
     }
-
-    if (!hadChangePageRef.current) {
-      // Just landed on a PR/MR page: default to notes for this change.
-      setScope("change");
-      hadChangePageRef.current = true;
+    if (context.revision?.headSha) {
+      setScope("commit");
       return;
     }
-
-    if (scope === "commit" && !context.revision?.headSha) {
-      setScope("change");
-    }
-  }, [context, scope]);
+    setScope("change");
+  }, [pageFingerprint, context]);
 
   /**
    * Notes visible under the current filter (then grouped in the list UI).
