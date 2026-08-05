@@ -2,32 +2,32 @@
 
 ## Purpose
 
-Forges store comments, approvals, and CI. They do not store the reviewer's own decisions (risk accepted, open question, follow-up, superseded call).
+Git sites (GitHub, GitLab, and similar) keep comments, approvals, and CI results. Reviewers also make personal calls while reading a change: risk they accept, questions still open, follow-ups, or that an older call was replaced.
 
-Decision Ledger records those decisions in context of a change (repo, number, optional file/lines and revision) on the hosts the user already uses.
+Decision Ledger saves those personal calls next to the change you are looking at (repo, number, and optional file, lines, and commit). It works on the Git sites you already use.
 
 ## Scope
 
-**In**
+**Included**
 
-- WebExtension on Chromium and Firefox
-- Shared domain model; host adapters (GitHub and GitLab first)
-- Side panel UI for create, search, edit, export
-- Local storage; Markdown/JSON export
+- Browser extension for Chrome-based browsers and Firefox
+- Shared data types for all sites; one adapter per site (GitHub and GitLab first)
+- Side panel to create, search, edit, and export decisions
+- Storage on the device; export to Markdown or JSON
 - Decision statuses: `draft`, `decided`, `open_question`, `superseded`
 
-**Out**
+**Not included**
 
-- Replacing forge approve/merge flows
-- Required cloud account or sync
-- Full PR client (edit, merge, re-run CI)
-- Safari and mobile as initial targets
+- Doing the site’s own approve or merge actions
+- A required cloud account
+- A full PR tool (edit files, merge, re-run CI)
+- Safari or mobile as first targets
 
 ## Rules
 
-1. User decisions are not the same as forge review state.
-2. Host code lives in adapters only.
-3. URL parse is enough to attach a decision; DOM and APIs only add detail.
-4. Default storage is local.
-5. Prefer extension UI over heavy page injection.
-6. Host permissions are opt-in per origin.
+1. The app stores what the reviewer writes. Site approve/reject stays on the Git site.
+2. Code that knows one site’s URLs or HTML lives only in that site’s adapter.
+3. Reading the page URL is enough to attach a decision. Page HTML and APIs can add detail when available.
+4. Storage defaults to the user’s device.
+5. Prefer the extension’s own UI (side panel) over large changes to the Git site’s page.
+6. Site access is requested per site when needed.

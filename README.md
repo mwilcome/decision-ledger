@@ -1,39 +1,39 @@
 # Decision Ledger
 
-Browser extension for recording review decisions on pull requests and merge requests across Git hosts (GitHub, GitLab, and others).
+A browser extension that saves your code-review decisions while you look at pull requests and merge requests on sites like GitHub and GitLab.
 
-Decisions are stored on the device. The core model is shared; each host has an adapter.
+Notes are saved on your computer. Shared TypeScript types describe a change and a decision. Each Git site has a small adapter that reads that site’s URLs and pages.
 
 | | |
 |---|---|
-| Stack | TypeScript, npm, Vite, React, WebExtension (MV3) |
-| Branch | `main` stable; `dev/1.0.0` active development |
+| Tools | TypeScript, npm, Vite, React, browser extension (Manifest V3) |
+| Branches | `main` for stable code; `dev/1.0.0` for current work |
 | License | TBD |
 
-## Docs
+## Docs in this repo
 
-| Doc | Content |
-|-----|---------|
-| [docs/VISION.md](docs/VISION.md) | Purpose and scope |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Layout, models, runtime |
-| [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | Branches, standards, tooling |
-| [docs/ADAPTERS.md](docs/ADAPTERS.md) | Host adapter contract |
-| [docs/decisions/](docs/decisions/) | ADRs |
+| File | What it covers |
+|------|----------------|
+| [docs/VISION.md](docs/VISION.md) | Why the project exists and what it covers |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the parts fit together and the main data types |
+| [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | How to work in this repository |
+| [docs/ADAPTERS.md](docs/ADAPTERS.md) | How support for each Git site is added |
+| [docs/decisions/](docs/decisions/) | Written records of major technical choices (ADRs) |
 
-Version-specific changes live in version docs when releases ship. This tree describes the product design, not a delivery checklist.
+These files describe the product and how the code is organized. Notes for a specific release version will live in separate version docs when we publish releases.
 
-## Expected outcome
+## What the product should do
 
-A Chromium and Firefox extension that:
+Works in Chrome-based browsers and Firefox. It should:
 
-- Detects the open change on a supported host
-- Lets the user create, edit, search, and export decisions tied to that change
-- Keeps host-specific logic in adapters
-- Works from URL identity when the page DOM is incomplete
+- See which pull request or merge request is open
+- Let you create, edit, search, and export decisions linked to that change
+- Put site-specific code in adapters only
+- Still work using only the page URL if the page HTML is hard to read
 
-## Core model
+## Main data types
 
-No HTTP API. Types below are the application contract.
+The app does not expose a public web API. These types are the shared shapes used in code.
 
 ```ts
 type HostId = "github" | "gitlab" | "bitbucket" | "azuredevops" | "gitea" | string;
@@ -97,24 +97,24 @@ interface HostAdapter {
 }
 ```
 
-## Layout
+## Folder layout
 
 ```text
 decision-ledger/
   README.md
-  docs/
-  apps/extension
-  packages/core
-  packages/adapters/
-  packages/storage
-  packages/ui
-  packages/shell
-  tools/fixtures
+  docs/                 documentation
+  apps/extension        browser extension entry points
+  packages/core         shared types and decision logic
+  packages/adapters/    one folder per Git site
+  packages/storage      saving and loading decisions
+  packages/ui           React UI
+  packages/shell        small helpers for different browsers
+  tools/fixtures        sample URLs and HTML for tests
 ```
 
 ## Privacy
 
-Decision text stays local unless the user exports or enables sync. Host permissions are optional per origin. Do not commit tokens or secrets.
+Decision text stays on the device unless you export it or turn on sync later. The extension asks for site access per site. Do not commit passwords, tokens, or secrets.
 
 ## Maintainers
 

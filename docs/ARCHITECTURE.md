@@ -1,22 +1,22 @@
 # Architecture
 
-## Stack
+## Tools
 
-npm, TypeScript (strict), Vite, React, WebExtension MV3.
+npm, TypeScript (strict mode), Vite, React, browser extension using Manifest V3.
 
-## Layers
+## Parts of the system
 
-| Layer | Role |
-|-------|------|
-| Content script | Resolve host adapter, emit `CaptureContext` |
-| Background | Messaging, permissions, context cache |
-| UI (React) | Side panel / shell: decisions CRUD, search, export |
-| `packages/core` | Types, keys, lifecycle, query/export (no browser APIs) |
-| `packages/adapters/*` | Per-host parse and observe |
-| `packages/storage` | Persistence (e.g. IndexedDB) |
-| `packages/shell` | Browser differences (side panel vs popup/sidebar) |
+| Part | Job |
+|------|-----|
+| Content script | Code that runs on the Git site page. Picks the right adapter and sends page context. |
+| Background script | Runs in the extension. Passes messages, handles permissions, remembers current context. |
+| UI (React) | Side panel: create, edit, search, and export decisions. |
+| `packages/core` | Shared types and decision logic. Does not use browser APIs. |
+| `packages/adapters/*` | One package per Git site: read URL and page, build context. |
+| `packages/storage` | Save and load decisions (for example IndexedDB in the browser). |
+| `packages/shell` | Small differences between browsers (side panel vs popup). |
 
-## Packages
+## Packages (folders)
 
 ```text
 apps/extension
@@ -30,34 +30,34 @@ packages/shell
 tools/fixtures
 ```
 
-## Models
+## Data types
 
-See root [README.md](../README.md) for `RepoRef`, `ChangeRef`, `CaptureContext`, `Decision`, `HostAdapter`.
+The main types (`RepoRef`, `ChangeRef`, `CaptureContext`, `Decision`, `HostAdapter`) are listed in the root [README.md](../README.md).
 
-**Context key** (group decisions for a change):
+**Context key** is a string that groups decisions for one change:
 
 ```text
 host | instanceUrl | owner | name | number [| headSha]
 ```
 
-Include `instanceUrl` for self-hosted hosts so instances do not collide.
+For a company-hosted GitLab or GitHub, always include `instanceUrl` so two servers with the same project path stay separate.
 
-**Statuses:** `draft` → `decided` | `open_question` → `superseded` (optional link to replacement id).
+**Decision statuses:** start as `draft`, then `decided` or `open_question`. Later a decision can become `superseded` and point at a newer decision id.
 
-Forge approval/CI state is optional display data, not a `Decision`.
+The site’s own approval or CI status can be shown if we load it. It is separate from a `Decision` record.
 
-## Runtime
+## What happens when you save a decision
 
-1. User opens a change page.
-2. Adapter builds `CaptureContext` from URL (and DOM if available).
-3. User writes a decision in the side panel.
-4. Core validates; storage persists.
-5. Export writes Markdown or JSON on demand.
+1. You open a pull request or merge request page.
+2. The adapter builds a `CaptureContext` from the URL (and from the page HTML if it can).
+3. You write a decision in the side panel.
+4. Core checks the data; storage saves it.
+5. Export can write Markdown or JSON when you ask.
 
 ## Permissions
 
-Optional host permissions per origin. No `*://*/*` at install. Tokens stay in extension storage.
+The extension requests access to a site when you use that site. It does not ask for all websites at install. Any API tokens stay in extension storage.
 
-## ADR
+## Related decision record
 
 - [0001-forge-agnostic-model.md](decisions/0001-forge-agnostic-model.md)

@@ -1,31 +1,31 @@
 # Development
 
-## Tooling
+## Tools
 
 | Item | Choice |
 |------|--------|
 | Package manager | npm |
 | Bundler | Vite |
-| UI | React |
-| Language | TypeScript strict |
-| Extension | MV3 WebExtension |
+| UI library | React |
+| Language | TypeScript with strict mode |
+| Extension format | Manifest V3 |
 
-Node LTS. Chromium and Firefox for loading unpacked builds.
+Use a current Node.js LTS release. Use a Chrome-based browser and Firefox to load local extension builds.
 
 ## Branches
 
 | Branch | Role |
 |--------|------|
-| `main` | Stable |
-| `dev/1.0.0` | Active development for 1.0.0 |
-| `feature/<name>` | Work branched from `dev/1.0.0` |
-| `fix/<name>` | Fixes |
+| `main` | Stable code |
+| `dev/1.0.0` | Current work toward version 1.0.0 |
+| `feature/<name>` | A feature branch started from `dev/1.0.0` |
+| `fix/<name>` | A fix branch |
 
-Tags (`v1.0.0`, …) mark releases. PRs target `dev/1.0.0` unless merging a release to `main`.
+Git tags like `v1.0.0` mark published releases. Open pull requests against `dev/1.0.0`. Use `main` as the target when you merge a release.
 
 ## Commits
 
-Imperative subject. Conventional Commits preferred:
+Start the subject with a verb. Conventional Commit prefixes are welcome:
 
 ```text
 feat(adapters): parse GitLab MR URLs
@@ -33,36 +33,36 @@ fix(storage): load decisions after reload
 docs: shorten architecture
 ```
 
-No secrets or customer data in commits.
+Do not commit secrets or private customer data.
 
 ## Code rules
 
-1. `packages/core` has no `chrome`, `browser`, or `document` imports.
-2. Host logic only in `packages/adapters/*`.
-3. UI uses adapter capabilities, not `if (host === "gitlab")`.
-4. Unknown pages return `null` context; do not throw out of content scripts.
-5. Detect browser APIs; shell provides fallbacks.
+1. `packages/core` must not import `chrome`, `browser`, or `document`.
+2. Site-specific code lives only under `packages/adapters/*`.
+3. UI should read adapter capability flags instead of hard-coding host names.
+4. If the page is unknown, return `null` for context. Do not throw from content scripts.
+5. Check whether a browser API exists before using it. `packages/shell` can supply a fallback.
 
 ## Tests
 
 | Area | Expectation |
 |------|-------------|
-| Core | Unit tests |
-| Adapters | URL/HTML fixtures → expected context |
-| UI / extension | Manual smoke on Chromium; Firefox when shell changes |
+| Core | Automated unit tests |
+| Adapters | Tests that feed sample URLs or HTML and check the resulting context |
+| UI / extension | Manual check in a Chrome-based browser; also Firefox when browser shell code changes |
 
-Sanitize fixtures. No private source or tokens.
+Test HTML and fixtures must not include secrets or private source code.
 
-## PRs
+## Pull requests
 
-- Describe what and why
-- Include tests/fixtures for core or parser changes
-- Update docs when contracts or behavior change
-- Optional host permissions only; call out new permissions
+- Say what changed and why
+- Add tests or fixtures when you change core or parsers
+- Update docs when shared types or behavior change
+- Prefer per-site permissions; mention any new permission in the PR
 
-## ADRs
+## Architecture decision records (ADRs)
 
-`docs/decisions/NNNN-short-title.md`:
+An ADR is a short file that records a major technical choice. Add files under `docs/decisions/` named `NNNN-short-title.md`:
 
 ```markdown
 # NNNN. Title

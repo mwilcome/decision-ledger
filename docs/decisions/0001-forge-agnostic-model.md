@@ -5,26 +5,26 @@
 
 ## Context
 
-Git hosts differ in URLs, review UX, and APIs. A GitHub-only model is costly to extend.
+Git sites differ in URLs, review screens, and APIs. Building only for GitHub first would lock site assumptions into storage and UI.
 
 ## Decision
 
-1. Core types: `RepoRef`, `ChangeRef`, `CaptureContext`, `Decision`.
-2. Host behavior behind `HostAdapter`.
-3. Forge review/approval state is optional, not the ledger record.
-4. Browser differences stay in the shell; core is pure TypeScript.
-5. Optional host permissions; URL parse is the minimum capture path.
+1. Shared types in core: `RepoRef`, `ChangeRef`, `CaptureContext`, `Decision`.
+2. Each site implements `HostAdapter` for parse and observe.
+3. Site approval and CI data are optional extras. A `Decision` is only what the user writes.
+4. Browser-specific UI wiring lives in the shell package. Core is plain TypeScript.
+5. Site permissions are requested per site. Parsing the URL is the minimum way to attach a decision.
 
 ## Consequences
 
-- New hosts are new adapter packages and fixtures.
-- Storage keys use host, instance, repo, and change number.
-- UI labels stay host-neutral where possible ("change", not only "PR").
+- A new site means a new adapter package and test fixtures.
+- Storage keys include host, instance URL, repo, and change number.
+- UI can say “change” so the same words work for pull requests and merge requests.
 
-## Alternatives rejected
+## Other options considered
 
-| Option | Reason |
-|--------|--------|
-| GitHub only | Blocks multi-host goal |
-| Single content script with host switches | Hard to test; leaks into core |
-| Cloud ledger as source of truth | Out of scope for default product |
+| Option | Why we did not pick it |
+|--------|------------------------|
+| GitHub only | We need more than one Git site |
+| One big content script with many `if (host)` branches | Harder to test; site details leak into shared code |
+| Cloud service as the main store | Default product keeps data on the device |

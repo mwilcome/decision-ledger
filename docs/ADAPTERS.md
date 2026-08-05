@@ -1,20 +1,20 @@
 # Adapters
 
-Each Git host is an adapter that maps pages into `CaptureContext`. Core never branches on host name.
+An **adapter** is the code for one Git site. It turns that site’s page URL (and optional HTML) into a `CaptureContext`. Shared logic in `packages/core` stays free of site names.
 
-## Hosts
+## Supported site shapes
 
-| Host | Change | URL pattern (typical) |
-|------|--------|------------------------|
+| Site | Name of a change | Example URL path |
+|------|------------------|------------------|
 | GitHub | Pull request | `/{owner}/{repo}/pull/{n}` |
 | GitLab | Merge request | `/{group}/{project}/-/merge_requests/{iid}` |
 | Bitbucket | Pull request | `/{workspace}/{repo}/pull-requests/{id}` |
 | Azure DevOps | Pull request | `/{org}/{project}/_git/{repo}/pullrequest/{id}` |
-| Gitea / Forgejo | Pull request | Often GitHub-like |
+| Gitea / Forgejo | Pull request | Often like GitHub |
 
-`ChangeRef.number` is the number in the UI/URL (GitLab **iid**).
+`ChangeRef.number` is the number shown in the URL and UI. On GitLab that is the **iid** (the per-project MR number).
 
-## Contract
+## Interfaces
 
 ```ts
 interface HostAdapter {
@@ -36,16 +36,16 @@ interface HostCapabilities {
 }
 ```
 
-Adapters own parse/observe. They do not own storage or decision lifecycle.
+Adapters parse pages and watch for navigation. Saving decisions and changing decision status stay in core and storage.
 
 ## Context rules
 
-- Prefer URL fields for identity; use DOM only for extras (title, SHA, selection).
-- `instanceUrl` is origin only (scheme, host, port).
-- Page role: `overview` | `changes` | `commits` | `checks` | `unknown`.
-- If DOM/API fail, URL-only context must still work.
+- Build identity mainly from the URL. Use page HTML for extras (title, commit SHA, selected lines).
+- `instanceUrl` is only the origin: scheme, host, and optional port.
+- Page role is one of: `overview`, `changes`, `commits`, `checks`, `unknown`.
+- If HTML or API data is missing, context from the URL alone is still valid.
 
-## Packages
+## Package folders
 
 ```text
 packages/adapters/host-api
@@ -53,20 +53,20 @@ packages/adapters/github
 packages/adapters/gitlab
 ```
 
-Register adapters in the content script. Resolve by `matchesOrigin`.
+The content script picks an adapter with `matchesOrigin` and registers each adapter there.
 
-## New host
+## Adding a site
 
-1. Implement `HostAdapter` under `packages/adapters/<host>/`.
-2. Add fixtures under `tools/fixtures/<host>/`.
-3. Register the adapter.
-4. Document origins and capabilities.
+1. Implement `HostAdapter` in `packages/adapters/<host>/`.
+2. Add sample URLs (and optional HTML) under `tools/fixtures/<host>/` for tests.
+3. Register the adapter in the content script.
+4. Document which origins it covers and which capability flags it sets.
 
-Fixtures must not include secrets or private source.
+Fixtures must not include secrets or private source code.
 
-## Avoid
+## Guidelines
 
-- Host checks inside `packages/core`
-- Identity based only on full `href` strings
-- Broad host permissions for one new origin
-- Putting forge approval JSON into `Decision.kind`
+- Keep site name checks out of `packages/core`
+- Prefer structured URL parts over saving only the full `href`
+- Request only the site origins you need
+- Keep forge approval details out of `Decision.kind`; use capability flags or separate snapshot data
