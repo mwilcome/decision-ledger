@@ -12,6 +12,7 @@ import {
   sortChangeGroupsCurrentFirst,
 } from "@decision-ledger/core";
 import type { ReactElement } from "react";
+import type { DecisionListScope } from "./ListFilter.js";
 
 /**
  * Props for {@link DecisionList}.
@@ -26,6 +27,11 @@ export interface DecisionListProps {
    * Open page context, used to highlight and sort the current PR group.
    */
   currentContext?: CaptureContext | null;
+
+  /**
+   * Active list filter. When `"all"`, cards may show a short location crumb.
+   */
+  listScope?: DecisionListScope;
 
   /**
    * Id of the decision currently open in the edit form, if any.
@@ -53,7 +59,14 @@ export interface DecisionListProps {
  * @param props - Component props
  */
 export function DecisionList(props: DecisionListProps): ReactElement {
-  const { decisions, currentContext, editingId, onEdit, onDelete } = props;
+  const {
+    decisions,
+    currentContext,
+    listScope = "change",
+    editingId,
+    onEdit,
+    onDelete,
+  } = props;
 
   if (decisions.length === 0) {
     return (
@@ -71,6 +84,9 @@ export function DecisionList(props: DecisionListProps): ReactElement {
   const currentKey = currentContext
     ? buildChangeKey(currentContext.change)
     : null;
+
+  /** Crumbs only when browsing every PR at once (group headers already name the PR). */
+  const showCardCrumb = listScope === "all";
 
   return (
     <div className="dl-groups">
@@ -93,7 +109,6 @@ export function DecisionList(props: DecisionListProps): ReactElement {
                   <span className="dl-chip dl-chip--current">This page</span>
                 ) : null}
               </div>
-              <p className="dl-group__host">{group.host}</p>
               <p className="dl-group__chips" aria-label="Summary">
                 <span className="dl-chip">{group.counts.total} total</span>
                 {group.counts.needsAttention > 0 ? (
@@ -122,6 +137,7 @@ export function DecisionList(props: DecisionListProps): ReactElement {
                     <DecisionCard
                       key={decision.id}
                       decision={decision}
+                      showCrumb={showCardCrumb}
                       isEditing={editingId === decision.id}
                       onEdit={onEdit}
                       onDelete={onDelete}
@@ -147,6 +163,11 @@ interface DecisionCardProps {
   decision: Decision;
 
   /**
+   * When true, show PR → scope crumb (used for Everything saved).
+   */
+  showCrumb: boolean;
+
+  /**
    * Whether this card is the one being edited.
    */
   isEditing: boolean;
@@ -163,12 +184,12 @@ interface DecisionCardProps {
 }
 
 /**
- * One note card with breadcrumb, type, progress, and actions.
+ * One note card with type, progress, body, and actions.
  *
  * @param props - Card props
  */
 function DecisionCard(props: DecisionCardProps): ReactElement {
-  const { decision, isEditing, onEdit, onDelete } = props;
+  const { decision, showCrumb, isEditing, onEdit, onDelete } = props;
   const attention = isAttentionDecision(decision.kind, decision.status);
   const settled = isSettledDecision(decision.status);
   const sha = decision.context.revision?.headSha;
@@ -185,13 +206,15 @@ function DecisionCard(props: DecisionCardProps): ReactElement {
 
   return (
     <li className={classNames}>
-      <p className="dl-list__crumb">
-        {formatChangeLabel(decision.context.change)}
-        <span className="dl-list__crumb-sep"> → </span>
-        {formatCommitScopeLabel(
-          sha ? normalizeShaForDisplay(sha) : undefined,
-        )}
-      </p>
+      {showCrumb ? (
+        <p className="dl-list__crumb">
+          {formatChangeLabel(decision.context.change)}
+          <span className="dl-list__crumb-sep"> → </span>
+          {formatCommitScopeLabel(
+            sha ? normalizeShaForDisplay(sha) : undefined,
+          )}
+        </p>
+      ) : null}
       <header className="dl-list__header">
         <span className="dl-list__kind">
           {getDecisionKindLabel(decision.kind)}

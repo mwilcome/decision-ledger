@@ -179,6 +179,13 @@ body {
   font-weight: 400;
 }
 
+.dl-filter__hint {
+  margin: 4px 0 0;
+  font-size: 0.75rem;
+  opacity: 0.85;
+  font-weight: 400;
+}
+
 .dl-groups {
   display: flex;
   flex-direction: column;
@@ -221,14 +228,8 @@ body {
   font-weight: 600;
 }
 
-.dl-group__host {
-  margin: 2px 0 6px;
-  font-size: 0.75rem;
-  opacity: 0.75;
-}
-
 .dl-group__chips {
-  margin: 0;
+  margin: 4px 0 0;
   display: flex;
   flex-wrap: wrap;
   gap: 4px;

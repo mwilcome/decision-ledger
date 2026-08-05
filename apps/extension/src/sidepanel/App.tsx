@@ -269,6 +269,7 @@ export function App(): ReactElement {
         <DecisionList
           decisions={visibleDecisions}
           currentContext={context}
+          listScope={scope}
           editingId={editing?.id}
           onEdit={handleEdit}
           onDelete={(d) => void handleDelete(d)}

@@ -22,7 +22,7 @@ export interface ListFilterProps {
   onChange: (scope: DecisionListScope) => void;
 
   /**
-   * When false, "This commit" is disabled.
+   * When false, "This commit only" is disabled.
    */
   commitAvailable: boolean;
 
@@ -72,6 +72,11 @@ export function ListFilter(props: ListFilterProps): ReactElement {
         />
         Everything saved
       </label>
+      {!commitAvailable ? (
+        <p className="dl-filter__hint">
+          Open a single commit to filter by commit.
+        </p>
+      ) : null}
     </div>
   );
 }
