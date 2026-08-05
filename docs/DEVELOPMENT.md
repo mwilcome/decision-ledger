@@ -39,7 +39,7 @@ Do not commit secrets or private customer data.
 
 1. `packages/core` must not import `chrome`, `browser`, or `document`.
 2. Site-specific code lives only under `packages/adapters/*`.
-3. UI should read adapter capability flags instead of hard-coding host names.
+3. UI should read adapter capability flags to decide what to show.
 4. If the page is unknown, return `null` for context. Do not throw from content scripts.
 5. Check whether a browser API exists before using it. `packages/shell` can supply a fallback.
 
