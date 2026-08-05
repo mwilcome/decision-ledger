@@ -1,8 +1,8 @@
 :root {
   color-scheme: light dark;
   font-family: system-ui, Segoe UI, sans-serif;
-  line-height: 1.4;
-  font-size: 14px;
+  line-height: 1.35;
+  font-size: 13px;
 }
 
 * {
@@ -17,11 +17,11 @@ body {
 }
 
 .dl-app {
-  padding: 12px;
+  padding: 8px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  min-width: 280px;
+  gap: 8px;
+  min-width: 260px;
 }
 
 .dl-app__header {
@@ -30,84 +30,64 @@ body {
 
 .dl-app__title {
   margin: 0;
-  font-size: 1.15rem;
-}
-
-.dl-app__tagline {
-  margin: 4px 0 0;
-  font-size: 0.8rem;
-  opacity: 0.8;
-}
-
-.dl-app__subtitle {
-  margin: 0 0 8px;
-  font-size: 0.95rem;
+  font-size: 1rem;
+  font-weight: 650;
 }
 
 .dl-banner {
-  border: 1px solid color-mix(in srgb, CanvasText 20%, transparent);
-  border-radius: 8px;
-  padding: 8px 10px;
-  background: color-mix(in srgb, CanvasText 4%, Canvas);
+  border: 1px solid color-mix(in srgb, CanvasText 18%, transparent);
+  border-radius: 6px;
+  padding: 6px 8px;
+  background: color-mix(in srgb, CanvasText 3%, Canvas);
 }
 
 .dl-banner--empty {
   opacity: 0.9;
 }
 
-.dl-banner__kicker {
-  margin: 0 0 2px;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  opacity: 0.75;
-}
-
 .dl-banner__title {
   margin: 0;
   font-weight: 600;
+  font-size: 0.85rem;
   word-break: break-word;
 }
 
 .dl-banner__meta {
-  margin: 4px 0 0;
-  opacity: 0.85;
-  font-size: 0.85rem;
+  margin: 2px 0 0;
+  opacity: 0.8;
+  font-size: 0.75rem;
 }
 
 .dl-form {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
-.dl-form__pair-help {
-  margin: 0;
-  font-size: 0.8rem;
-  opacity: 0.9;
-  line-height: 1.35;
+.dl-form__row {
+  display: flex;
+  gap: 6px;
 }
 
 .dl-form__label {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  font-size: 0.85rem;
+  gap: 2px;
+  font-size: 0.75rem;
   font-weight: 600;
 }
 
-.dl-form__hint {
-  font-weight: 400;
-  font-size: 0.75rem;
-  opacity: 0.85;
+.dl-form__label--half {
+  flex: 1;
+  min-width: 0;
 }
 
 .dl-form__select,
 .dl-form__textarea {
   font: inherit;
   font-weight: 400;
-  padding: 6px 8px;
-  border-radius: 6px;
+  padding: 4px 6px;
+  border-radius: 5px;
   border: 1px solid color-mix(in srgb, CanvasText 25%, transparent);
   background: Field;
   color: FieldText;
@@ -115,19 +95,19 @@ body {
 
 .dl-form__mode {
   margin: 0;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-weight: 600;
 }
 
 .dl-form__actions {
   display: flex;
-  gap: 8px;
+  gap: 6px;
 }
 
 .dl-form__submit {
   font: inherit;
-  padding: 8px 10px;
-  border-radius: 6px;
+  padding: 5px 10px;
+  border-radius: 5px;
   border: none;
   cursor: pointer;
   background: #2563eb;
@@ -148,8 +128,8 @@ body {
 
 .dl-form__cancel {
   font: inherit;
-  padding: 8px 10px;
-  border-radius: 6px;
+  padding: 5px 10px;
+  border-radius: 5px;
   border: 1px solid color-mix(in srgb, CanvasText 25%, transparent);
   cursor: pointer;
   background: transparent;
@@ -158,79 +138,83 @@ body {
 
 .dl-app__error {
   margin: 0;
-  padding: 8px 10px;
-  border-radius: 6px;
+  padding: 6px 8px;
+  border-radius: 5px;
   background: color-mix(in srgb, #dc2626 15%, Canvas);
-  color: inherit;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
 }
 
 .dl-filter {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  margin-bottom: 10px;
-  font-size: 0.85rem;
+  gap: 2px;
+  margin-bottom: 4px;
+  font-size: 0.8rem;
 }
 
-.dl-filter__heading {
-  margin: 0 0 2px;
-  font-weight: 600;
+.dl-filter__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  align-items: center;
 }
 
 .dl-filter__option {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   cursor: pointer;
   font-weight: 400;
+  white-space: nowrap;
 }
 
 .dl-filter__hint {
-  margin: 4px 0 0;
-  font-size: 0.75rem;
-  opacity: 0.85;
-  font-weight: 400;
+  margin: 2px 0 0;
+  font-size: 0.7rem;
+  opacity: 0.8;
 }
 
 .dl-filter__link {
-  margin: 6px 0 0;
+  margin: 2px 0 0;
   padding: 0;
   border: none;
   background: none;
   color: #2563eb;
   font: inherit;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   text-align: left;
   cursor: pointer;
   text-decoration: underline;
 }
 
-.dl-bulk-bar {
-  margin-bottom: 4px;
-}
-
 .dl-group__summary {
-  margin: 6px 0 0;
-  font-size: 0.8rem;
+  margin: 3px 0 0;
+  font-size: 0.72rem;
   font-weight: 500;
 }
 
 .dl-group__summary--quiet {
-  opacity: 0.75;
+  opacity: 0.7;
   font-weight: 400;
 }
 
 .dl-group__actions {
-  margin-top: 8px;
+  margin-top: 4px;
+}
+
+.dl-group__total {
+  font-size: 0.7rem;
+  font-weight: 500;
+  opacity: 0.7;
+  margin-left: auto;
 }
 
 .dl-section__toggle {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   width: 100%;
-  margin: 0 0 6px;
+  margin: 0 0 4px;
   padding: 0;
   border: none;
   background: transparent;
@@ -242,36 +226,36 @@ body {
 
 .dl-section__count {
   font-weight: 400;
-  opacity: 0.75;
+  opacity: 0.7;
 }
 
 .dl-groups {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 8px;
 }
 
 .dl-group {
   border: 1px solid color-mix(in srgb, CanvasText 16%, transparent);
-  border-radius: 10px;
-  padding: 10px;
+  border-radius: 7px;
+  padding: 6px 8px;
   background: color-mix(in srgb, CanvasText 2%, Canvas);
 }
 
 .dl-group--current {
   border-color: color-mix(in srgb, #2563eb 65%, transparent);
-  background: color-mix(in srgb, #2563eb 8%, Canvas);
-  box-shadow: 0 0 0 1px color-mix(in srgb, #2563eb 25%, transparent);
+  background: color-mix(in srgb, #2563eb 7%, Canvas);
+  box-shadow: 0 0 0 1px color-mix(in srgb, #2563eb 20%, transparent);
 }
 
 .dl-group__header {
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .dl-group__toggle {
   display: flex;
   align-items: flex-start;
-  gap: 6px;
+  gap: 4px;
   width: 100%;
   margin: 0;
   padding: 0;
@@ -286,7 +270,7 @@ body {
 .dl-group__chevron {
   flex-shrink: 0;
   margin-top: 2px;
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   opacity: 0.8;
 }
 
@@ -294,13 +278,14 @@ body {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
+  gap: 4px 6px;
   min-width: 0;
+  flex: 1;
 }
 
 .dl-group__title {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 0.82rem;
   font-weight: 600;
   word-break: break-word;
 }
@@ -311,49 +296,23 @@ body {
 
 .dl-chip--current {
   border-color: color-mix(in srgb, #2563eb 55%, transparent);
-  background: color-mix(in srgb, #2563eb 18%, Canvas);
+  background: color-mix(in srgb, #2563eb 16%, Canvas);
   font-weight: 600;
-}
-
-.dl-group__chips {
-  margin: 4px 0 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
-.dl-chip {
-  display: inline-block;
-  font-size: 0.7rem;
-  padding: 2px 6px;
+  font-size: 0.65rem;
+  padding: 0 5px;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, CanvasText 20%, transparent);
-  opacity: 0.95;
-}
-
-.dl-chip--attention {
-  border-color: color-mix(in srgb, #d97706 60%, transparent);
-  background: color-mix(in srgb, #d97706 12%, Canvas);
-}
-
-.dl-chip--block {
-  border-color: color-mix(in srgb, #dc2626 60%, transparent);
-  background: color-mix(in srgb, #dc2626 12%, Canvas);
-}
-
-.dl-chip--settled {
-  opacity: 0.75;
+  border: 1px solid color-mix(in srgb, #2563eb 55%, transparent);
 }
 
 .dl-section {
-  margin-top: 8px;
-  padding-left: 8px;
-  border-left: 3px solid color-mix(in srgb, CanvasText 18%, transparent);
+  margin-top: 4px;
+  padding-left: 6px;
+  border-left: 2px solid color-mix(in srgb, CanvasText 16%, transparent);
 }
 
 .dl-section__title {
   margin: 0;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 600;
   opacity: 0.9;
 }
@@ -364,85 +323,85 @@ body {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 5px;
 }
 
 .dl-list__item {
-  border: 1px solid color-mix(in srgb, CanvasText 18%, transparent);
-  border-radius: 8px;
-  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, CanvasText 16%, transparent);
+  border-radius: 6px;
+  padding: 5px 7px;
   background: Canvas;
 }
 
 .dl-list__item--editing {
   border-color: #2563eb;
-  box-shadow: 0 0 0 1px color-mix(in srgb, #2563eb 40%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, #2563eb 35%, transparent);
   opacity: 1;
 }
 
 .dl-list__item--attention {
-  border-left: 4px solid #d97706;
-  background: color-mix(in srgb, #d97706 6%, Canvas);
+  border-left: 3px solid #d97706;
+  background: color-mix(in srgb, #d97706 5%, Canvas);
 }
 
 .dl-list__item--waiting {
-  border-left: 4px solid #ca8a04;
+  border-left: 3px solid #ca8a04;
 }
 
 .dl-list__item--block {
-  border-left: 4px solid #dc2626;
-  background: color-mix(in srgb, #dc2626 7%, Canvas);
+  border-left: 3px solid #dc2626;
+  background: color-mix(in srgb, #dc2626 6%, Canvas);
 }
 
 .dl-list__item--settled {
-  opacity: 0.62;
-  border-left: 4px solid color-mix(in srgb, CanvasText 15%, transparent);
-  background: color-mix(in srgb, CanvasText 3%, Canvas);
+  opacity: 0.58;
+  border-left: 3px solid color-mix(in srgb, CanvasText 14%, transparent);
+  background: color-mix(in srgb, CanvasText 2%, Canvas);
 }
 
 .dl-list__item--settled .dl-list__body {
   font-weight: 400;
-  opacity: 0.9;
+  opacity: 0.92;
 }
 
 .dl-list__crumb {
-  margin: 0 0 6px;
-  font-size: 0.72rem;
-  line-height: 1.3;
-  opacity: 0.85;
+  margin: 0 0 3px;
+  font-size: 0.68rem;
+  line-height: 1.25;
+  opacity: 0.8;
   word-break: break-word;
 }
 
 .dl-list__crumb-sep {
-  opacity: 0.6;
+  opacity: 0.55;
 }
 
 .dl-list__header {
   display: flex;
   justify-content: space-between;
-  gap: 8px;
-  font-size: 0.75rem;
-  margin-top: 4px;
+  gap: 6px;
+  font-size: 0.7rem;
+  margin-top: 3px;
   opacity: 0.9;
 }
 
 .dl-list__kind {
   font-weight: 600;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   opacity: 0.9;
 }
 
 .dl-list__status {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   font-weight: 500;
-  padding: 1px 6px;
+  padding: 0 5px;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, CanvasText 18%, transparent);
+  border: 1px solid color-mix(in srgb, CanvasText 16%, transparent);
 }
 
 .dl-list__status--active {
   border-color: color-mix(in srgb, #d97706 50%, transparent);
-  background: color-mix(in srgb, #d97706 12%, Canvas);
+  background: color-mix(in srgb, #d97706 10%, Canvas);
 }
 
 .dl-list__status--settled {
@@ -453,43 +412,61 @@ body {
 .dl-list__body {
   margin: 0;
   white-space: pre-wrap;
-  font-size: 0.95rem;
+  font-size: 0.88rem;
   font-weight: 500;
-  line-height: 1.45;
+  line-height: 1.35;
 }
 
 .dl-list__footer {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
   gap: 6px;
-  font-size: 0.75rem;
+  margin-top: 3px;
+  font-size: 0.7rem;
 }
 
 .dl-list__when {
-  opacity: 0.75;
+  opacity: 0.7;
 }
 
 .dl-list__actions {
   display: flex;
-  gap: 8px;
+  gap: 4px;
 }
 
 .dl-list__btn {
   font: inherit;
-  font-size: 0.8rem;
-  padding: 4px 8px;
+  font-size: 0.7rem;
+  padding: 2px 6px;
   border-radius: 4px;
-  border: 1px solid color-mix(in srgb, CanvasText 25%, transparent);
+  border: 1px solid color-mix(in srgb, CanvasText 22%, transparent);
   background: transparent;
   color: inherit;
   cursor: pointer;
 }
 
 .dl-list__btn--danger {
-  border-color: color-mix(in srgb, #dc2626 50%, transparent);
+  border-color: color-mix(in srgb, #dc2626 45%, transparent);
 }
 
 .dl-list-empty {
   margin: 0;
   opacity: 0.8;
+  font-size: 0.8rem;
+}
+
+.dl-more {
+  font-size: 0.75rem;
+  opacity: 0.9;
+}
+
+.dl-more summary {
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.dl-more .dl-list__btn {
+  margin-top: 4px;
 }

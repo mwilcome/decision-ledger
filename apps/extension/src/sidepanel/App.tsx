@@ -301,9 +301,6 @@ export function App(): ReactElement {
     <div className="dl-app">
       <header className="dl-app__header">
         <h1 className="dl-app__title">Decision Ledger</h1>
-        <p className="dl-app__tagline">
-          Your review notes, saved on this computer
-        </p>
       </header>
 
       <ContextBanner context={context} />
@@ -332,7 +329,6 @@ export function App(): ReactElement {
       />
 
       <section className="dl-app__list" aria-label="Saved notes">
-        <h2 className="dl-app__subtitle">Saved notes</h2>
         <ListFilter
           scope={scope}
           onChange={setScope}

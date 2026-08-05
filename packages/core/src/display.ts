@@ -39,7 +39,7 @@ export function changeNoun(host: string): string {
  */
 export function formatCommitScopeLabel(headSha: string | undefined): string {
   if (!headSha) {
-    return "General notes (whole PR)";
+    return "Whole change";
   }
   return `Commit ${normalizeShaForDisplay(headSha)}`;
 }

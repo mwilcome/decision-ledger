@@ -67,7 +67,7 @@ export interface DecisionFormProps {
 }
 
 /**
- * Form to create or edit a review note with plain-language fields.
+ * Compact form to create or edit a review note.
  *
  * @param props - Component props
  */
@@ -89,20 +89,15 @@ export function DecisionForm(props: DecisionFormProps): ReactElement {
       getDefaultStatusForKind(initialValues?.kind ?? "note"),
   );
 
-  /** Whether the user manually changed progress (stops auto-default from type). */
+  /** Whether the user manually changed progress. */
   const [statusTouched, setStatusTouched] = useState(mode === "edit");
 
   /** Body text. */
   const [body, setBody] = useState(initialValues?.body ?? "");
 
-  /**
-   * True when the user is actively writing (or editing), so Save stays primary.
-   */
+  /** True when writing/editing so Save stays primary. */
   const [engaged, setEngaged] = useState(mode === "edit");
 
-  /**
-   * Resets fields when switching create/edit target.
-   */
   useEffect(() => {
     const nextKind = initialValues?.kind ?? "note";
     setKind(nextKind);
@@ -112,9 +107,6 @@ export function DecisionForm(props: DecisionFormProps): ReactElement {
     setEngaged(mode === "edit" || Boolean(initialValues?.body));
   }, [mode, initialValues?.kind, initialValues?.status, initialValues?.body]);
 
-  /**
-   * Scrolls the form into view and focuses the note body when editing starts.
-   */
   useEffect(() => {
     if (mode !== "edit") {
       return;
@@ -126,7 +118,7 @@ export function DecisionForm(props: DecisionFormProps): ReactElement {
   }, [mode, initialValues?.body]);
 
   /**
-   * Updates note type and optionally progress default in create mode.
+   * Updates note type and default progress in create mode.
    *
    * @param next - New kind
    */
@@ -177,66 +169,58 @@ export function DecisionForm(props: DecisionFormProps): ReactElement {
     >
       {mode === "edit" ? (
         <p className="dl-form__mode" aria-live="polite">
-          Editing this note
+          Editing
         </p>
       ) : null}
 
-      <p className="dl-form__pair-help">
-        <strong>What is this note?</strong> is the sort of note you are writing.{" "}
-        <strong>Where is this?</strong> is whether you are still working on it,
-        waiting for clarification, or finished.
-      </p>
+      <div className="dl-form__row">
+        <label className="dl-form__label dl-form__label--half">
+          Type
+          <select
+            className="dl-form__select"
+            value={kind}
+            disabled={!enabled}
+            title={getDecisionKindHint(kind)}
+            onChange={(e) => handleKindChange(e.target.value as DecisionKind)}
+          >
+            {DECISION_KIND_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="dl-form__label dl-form__label--half">
+          Progress
+          <select
+            className="dl-form__select"
+            value={status}
+            disabled={!enabled}
+            title="In progress, waiting for clarification, or settled"
+            onChange={(e) => {
+              setStatusTouched(true);
+              setEngaged(true);
+              setStatus(e.target.value as DecisionStatus);
+            }}
+          >
+            {statusOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
 
       <label className="dl-form__label">
-        What is this note?
-        <select
-          className="dl-form__select"
-          value={kind}
-          disabled={!enabled}
-          onChange={(e) => handleKindChange(e.target.value as DecisionKind)}
-        >
-          {DECISION_KIND_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-        <span className="dl-form__hint">{getDecisionKindHint(kind)}</span>
-      </label>
-
-      <label className="dl-form__label">
-        Where is this?
-        <select
-          className="dl-form__select"
-          value={status}
-          disabled={!enabled}
-          onChange={(e) => {
-            setStatusTouched(true);
-            setEngaged(true);
-            setStatus(e.target.value as DecisionStatus);
-          }}
-        >
-          {statusOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-        <span className="dl-form__hint">
-          In progress = still thinking. Waiting for clarification = need an
-          answer. Settled = done.
-        </span>
-      </label>
-
-      <label className="dl-form__label">
-        Your note
+        Note
         <textarea
           ref={bodyRef}
           className="dl-form__textarea"
           value={body}
           disabled={!enabled}
-          rows={4}
-          placeholder="Write the decision or question in plain language."
+          rows={3}
+          placeholder="Your note…"
           onChange={(e) => {
             setEngaged(true);
             setBody(e.target.value);
@@ -246,7 +230,7 @@ export function DecisionForm(props: DecisionFormProps): ReactElement {
 
       <div className="dl-form__actions">
         <button className={submitClass} type="submit" disabled={!enabled}>
-          {mode === "edit" ? "Update note" : "Save note"}
+          {mode === "edit" ? "Update" : "Save"}
         </button>
         {mode === "edit" && onCancel ? (
           <button

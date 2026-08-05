@@ -22,18 +22,18 @@ export interface ListFilterProps {
   onChange: (scope: DecisionListScope) => void;
 
   /**
-   * When false, "This commit only" is disabled.
+   * When false, "This commit" is disabled.
    */
   commitAvailable: boolean;
 
   /**
-   * When false, "This pull request" is disabled.
+   * When false, "This PR" is disabled.
    */
   changeAvailable: boolean;
 }
 
 /**
- * Scope control for the saved notes list, in plain language.
+ * Compact scope control for the saved notes list.
  *
  * @param props - Component props
  */
@@ -41,41 +41,40 @@ export function ListFilter(props: ListFilterProps): ReactElement {
   const { scope, onChange, commitAvailable, changeAvailable } = props;
 
   return (
-    <div className="dl-filter" role="group" aria-label="Which notes to show">
-      <p className="dl-filter__heading">Show notes for</p>
-      <label className="dl-filter__option">
-        <input
-          type="radio"
-          name="dl-scope"
-          checked={scope === "change"}
-          disabled={!changeAvailable}
-          onChange={() => onChange("change")}
-        />
-        This pull request
-      </label>
-      <label className="dl-filter__option">
-        <input
-          type="radio"
-          name="dl-scope"
-          checked={scope === "commit"}
-          disabled={!commitAvailable}
-          onChange={() => onChange("commit")}
-        />
-        This commit only
-      </label>
-      <label className="dl-filter__option">
-        <input
-          type="radio"
-          name="dl-scope"
-          checked={scope === "all"}
-          onChange={() => onChange("all")}
-        />
-        Everything saved
-      </label>
+    <div className="dl-filter" role="group" aria-label="Show notes for">
+      <div className="dl-filter__row">
+        <label className="dl-filter__option">
+          <input
+            type="radio"
+            name="dl-scope"
+            checked={scope === "change"}
+            disabled={!changeAvailable}
+            onChange={() => onChange("change")}
+          />
+          This PR
+        </label>
+        <label className="dl-filter__option">
+          <input
+            type="radio"
+            name="dl-scope"
+            checked={scope === "commit"}
+            disabled={!commitAvailable}
+            onChange={() => onChange("commit")}
+          />
+          Commit
+        </label>
+        <label className="dl-filter__option">
+          <input
+            type="radio"
+            name="dl-scope"
+            checked={scope === "all"}
+            onChange={() => onChange("all")}
+          />
+          All
+        </label>
+      </div>
       {!commitAvailable ? (
-        <p className="dl-filter__hint">
-          Pick a commit in the PR to use this.
-        </p>
+        <p className="dl-filter__hint">Pick a commit to filter by commit.</p>
       ) : null}
       {scope === "all" && changeAvailable ? (
         <button
@@ -83,7 +82,7 @@ export function ListFilter(props: ListFilterProps): ReactElement {
           className="dl-filter__link"
           onClick={() => onChange("change")}
         >
-          Show only this page
+          This page only
         </button>
       ) : null}
     </div>

@@ -173,27 +173,15 @@ export function DecisionList(props: DecisionListProps): ReactElement {
 
   return (
     <div className="dl-groups">
-      {onDeleteOldSettled ? (
-        <div className="dl-bulk-bar">
-          <button
-            type="button"
-            className="dl-list__btn"
-            onClick={onDeleteOldSettled}
-          >
-            Delete settled notes older than 30 days
-          </button>
-        </div>
-      ) : null}
-
       {groups.map((group) => {
         const isCurrent = currentKey !== null && group.key === currentKey;
         const expanded = isGroupExpanded(group.key, isCurrent);
-        const openSummary = formatOpenWorkSummary(
-          group.sections.flatMap((s) => s.decisions),
+        const allInGroup = group.sections.flatMap((s) => s.decisions);
+        const openSummary = formatOpenWorkSummary(allInGroup);
+        const unfinished = allInGroup.filter(
+          (d) => !isSettledDecision(d.status),
         );
-        const unfinished = group.sections
-          .flatMap((s) => s.decisions)
-          .filter((d) => !isSettledDecision(d.status));
+        const total = allInGroup.length;
 
         const groupClass = [
           "dl-group",
@@ -227,34 +215,19 @@ export function DecisionList(props: DecisionListProps): ReactElement {
                 <span className="dl-group__title-row">
                   <span className="dl-group__title">{group.title}</span>
                   {isCurrent ? (
-                    <span className="dl-chip dl-chip--current">This page</span>
+                    <span className="dl-chip dl-chip--current">Here</span>
                   ) : null}
+                  <span className="dl-group__total">{total}</span>
                 </span>
               </button>
-              {openSummary ? (
-                <p className="dl-group__summary">{openSummary}</p>
-              ) : (
-                <p className="dl-group__summary dl-group__summary--quiet">
-                  No open work
-                </p>
-              )}
-              <p className="dl-group__chips" aria-label="Summary">
-                <span className="dl-chip">{group.counts.total} total</span>
-                {group.counts.needsAttention > 0 ? (
-                  <span className="dl-chip dl-chip--attention">
-                    {group.counts.needsAttention} need attention
-                  </span>
-                ) : null}
-                {group.counts.needsChanges > 0 ? (
-                  <span className="dl-chip dl-chip--block">
-                    {group.counts.needsChanges} needs changes
-                  </span>
-                ) : null}
-                {group.counts.settled > 0 ? (
-                  <span className="dl-chip dl-chip--settled">
-                    {group.counts.settled} settled
-                  </span>
-                ) : null}
+              <p
+                className={
+                  openSummary
+                    ? "dl-group__summary"
+                    : "dl-group__summary dl-group__summary--quiet"
+                }
+              >
+                {openSummary ?? "No open work"}
               </p>
               {expanded &&
               onSettleAllInGroup &&
@@ -266,7 +239,7 @@ export function DecisionList(props: DecisionListProps): ReactElement {
                     className="dl-list__btn"
                     onClick={() => onSettleAllInGroup(unfinished)}
                   >
-                    Mark all open notes settled
+                    Settle all open
                   </button>
                 </div>
               ) : null}
@@ -328,6 +301,19 @@ export function DecisionList(props: DecisionListProps): ReactElement {
           </section>
         );
       })}
+
+      {onDeleteOldSettled ? (
+        <details className="dl-more">
+          <summary>More</summary>
+          <button
+            type="button"
+            className="dl-list__btn"
+            onClick={onDeleteOldSettled}
+          >
+            Delete settled notes older than 30 days
+          </button>
+        </details>
+      ) : null}
     </div>
   );
 }
@@ -429,7 +415,7 @@ function DecisionCard(props: DecisionCardProps): ReactElement {
             className="dl-list__btn dl-list__btn--danger"
             onClick={() => onDelete(decision)}
           >
-            Delete
+            Del
           </button>
         </span>
       </footer>

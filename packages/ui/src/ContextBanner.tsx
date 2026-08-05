@@ -16,7 +16,7 @@ export interface ContextBannerProps {
 }
 
 /**
- * Shows which pull request (and optional commit) the open page is about.
+ * Compact banner for the open pull request / merge request.
  *
  * @param props - Component props
  */
@@ -26,24 +26,20 @@ export function ContextBanner(props: ContextBannerProps): ReactElement {
   if (!context) {
     return (
       <section className="dl-banner dl-banner--empty" aria-live="polite">
-        <p className="dl-banner__title">No pull request detected</p>
-        <p className="dl-banner__meta">
-          Open a GitHub or GitLab pull/merge request to link notes to it.
-        </p>
+        <p className="dl-banner__title">No change page</p>
+        <p className="dl-banner__meta">Open a PR or MR to attach notes.</p>
       </section>
     );
   }
 
   const pageHint = pageRoleHint(context.page);
+  const scope = formatCommitScopeLabel(context.revision?.headSha);
 
   return (
     <section className="dl-banner" aria-live="polite">
-      <p className="dl-banner__kicker">On this page</p>
-      <p className="dl-banner__title">
-        {formatChangeLabel(context.change)}
-      </p>
+      <p className="dl-banner__title">{formatChangeLabel(context.change)}</p>
       <p className="dl-banner__meta">
-        {formatCommitScopeLabel(context.revision?.headSha)}
+        {scope}
         {pageHint ? ` · ${pageHint}` : ""}
       </p>
     </section>
@@ -51,7 +47,7 @@ export function ContextBanner(props: ContextBannerProps): ReactElement {
 }
 
 /**
- * Plain label for which tab of the PR the user is on.
+ * Short label for which PR tab is open.
  *
  * @param page - Normalized page role
  */
@@ -60,9 +56,9 @@ function pageRoleHint(page: CaptureContext["page"]): string {
     case "overview":
       return "Conversation";
     case "changes":
-      return "Files / diff";
+      return "Files";
     case "commits":
-      return "Commits list";
+      return "Commits";
     case "checks":
       return "Checks";
     default:
