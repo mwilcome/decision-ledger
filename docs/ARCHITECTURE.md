@@ -50,11 +50,11 @@ When `CaptureContext.revision.headSha` is set at save time, the decision is comm
 
 For a company-hosted GitLab or GitHub, always include `instanceUrl` so two servers with the same project path stay separate.
 
-**Note type** (field `kind` in code): what the note is about. UI label **What is this note?**  
-Examples: Note, Accepted risk, Open question, Follow-up, Needs changes, OK minor notes.
+**Note type** (field `kind`): Note, Question, Risk, Blocker.  
+Legacy kinds (`follow_up`, `approve_with_notes`) map to Note on load.
 
-**Progress** (field `status` in code): whether you are done with the note. UI label **Where is this?**  
-`draft` → In progress, `open_question` → Waiting for clarification, `decided` → Settled, `superseded` → Replaced.
+**Progress** (field `status`): In progress, Waiting for clarification, Settled, Replaced.  
+Settled means you are done with that item (including a answered question).
 
 The saved list groups notes by pull request, then by whole PR vs commit.
 

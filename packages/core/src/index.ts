@@ -51,6 +51,8 @@ export {
   getDefaultStatusForKind,
   isAttentionDecision,
   isSettledDecision,
+  normalizeDecision,
+  normalizeDecisionKind,
   sortDecisionsAttentionFirst,
 } from "./labels.js";
 

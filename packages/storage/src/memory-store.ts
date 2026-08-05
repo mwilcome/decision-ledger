@@ -1,4 +1,5 @@
 import type { Decision } from "@decision-ledger/core";
+import { normalizeDecision } from "@decision-ledger/core";
 import type { DecisionStore } from "./ports.js";
 
 /**
@@ -15,7 +16,7 @@ export class MemoryDecisionStore implements DecisionStore {
    * Returns a shallow copy list of all decisions.
    */
   async list(): Promise<Decision[]> {
-    return [...this.byId.values()];
+    return [...this.byId.values()].map((d) => normalizeDecision(d));
   }
 
   /**
@@ -24,7 +25,8 @@ export class MemoryDecisionStore implements DecisionStore {
    * @param id - Decision id
    */
   async get(id: string): Promise<Decision | null> {
-    return this.byId.get(id) ?? null;
+    const found = this.byId.get(id);
+    return found ? normalizeDecision(found) : null;
   }
 
   /**
@@ -33,10 +35,11 @@ export class MemoryDecisionStore implements DecisionStore {
    * @param decision - Decision to save
    */
   async save(decision: Decision): Promise<void> {
-    this.byId.set(decision.id, {
-      ...decision,
-      tags: [...decision.tags],
-      context: decision.context,
+    const normalized = normalizeDecision(decision);
+    this.byId.set(normalized.id, {
+      ...normalized,
+      tags: [...normalized.tags],
+      context: normalized.context,
     });
   }
 

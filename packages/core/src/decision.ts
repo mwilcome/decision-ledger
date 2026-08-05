@@ -1,3 +1,4 @@
+import { normalizeDecisionKind } from "./labels.js";
 import type { Decision, DecisionStatus, NewDecisionInput } from "./types.js";
 
 /**
@@ -16,7 +17,7 @@ export function createDecision(
     id: createId(now),
     context: input.context,
     status: input.status ?? "draft",
-    kind: input.kind,
+    kind: normalizeDecisionKind(input.kind),
     body: input.body,
     tags: input.tags ? [...input.tags] : [],
     supersedes: input.supersedes,
@@ -39,9 +40,14 @@ export function updateDecision(
   >,
   now: () => number = Date.now,
 ): Decision {
+  const kind =
+    patch.kind !== undefined
+      ? normalizeDecisionKind(patch.kind)
+      : decision.kind;
   return {
     ...decision,
     ...patch,
+    kind,
     tags: patch.tags ? [...patch.tags] : decision.tags,
     updatedAt: toIso(now()),
   };

@@ -51,11 +51,11 @@ export function formatCommitScopeLabel(headSha: string | undefined): string {
  */
 export function countDecisionMarkers(decisions: readonly Decision[]): {
   /**
-   * Notes that still need attention (open / in progress / needs changes).
+   * Notes that still need attention (open / in progress / blockers).
    */
   needsAttention: number;
   /**
-   * Notes with type "Needs changes".
+   * Notes with type Blocker.
    */
   needsChanges: number;
   /**

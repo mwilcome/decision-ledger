@@ -69,13 +69,7 @@ interface CaptureContext {
 }
 
 type DecisionStatus = "draft" | "decided" | "open_question" | "superseded";
-type DecisionKind =
-  | "note"
-  | "risk"
-  | "question"
-  | "follow_up"
-  | "block"
-  | "approve_with_notes";
+type DecisionKind = "note" | "question" | "risk" | "block";
 
 interface Decision {
   id: string;

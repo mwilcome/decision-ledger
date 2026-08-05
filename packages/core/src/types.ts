@@ -179,16 +179,13 @@ export type DecisionStatus =
   | "superseded";
 
 /**
- * Category of decision the reviewer is recording.
+ * Category of note the reviewer is recording.
  * Stored values are stable ids; UI shows plain-language labels separately.
+ *
+ * Four types only: general note, question, accepted risk, blocker.
+ * Older values (`follow_up`, `approve_with_notes`) are mapped on load.
  */
-export type DecisionKind =
-  | "note"
-  | "risk"
-  | "question"
-  | "follow_up"
-  | "block"
-  | "approve_with_notes";
+export type DecisionKind = "note" | "question" | "risk" | "block";
 
 /**
  * One user-authored ledger entry tied to a capture context.

@@ -1,4 +1,5 @@
 import type { Decision } from "@decision-ledger/core";
+import { normalizeDecision } from "@decision-ledger/core";
 import type { DecisionStore } from "./ports.js";
 
 /**
@@ -38,7 +39,10 @@ export class IndexedDbDecisionStore implements DecisionStore {
    */
   async list(): Promise<Decision[]> {
     const db = await this.dbPromise;
-    return runStoreRequest(db, "readonly", (store) => store.getAll());
+    const rows = await runStoreRequest(db, "readonly", (store) =>
+      store.getAll(),
+    );
+    return (rows as Decision[]).map((row) => normalizeDecision(row));
   }
 
   /**
@@ -51,7 +55,10 @@ export class IndexedDbDecisionStore implements DecisionStore {
     const result = await runStoreRequest(db, "readonly", (store) =>
       store.get(id),
     );
-    return (result as Decision | undefined) ?? null;
+    if (!result) {
+      return null;
+    }
+    return normalizeDecision(result as Decision);
   }
 
   /**
@@ -61,7 +68,8 @@ export class IndexedDbDecisionStore implements DecisionStore {
    */
   async save(decision: Decision): Promise<void> {
     const db = await this.dbPromise;
-    await runStoreRequest(db, "readwrite", (store) => store.put(decision));
+    const normalized = normalizeDecision(decision);
+    await runStoreRequest(db, "readwrite", (store) => store.put(normalized));
   }
 
   /**

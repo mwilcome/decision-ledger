@@ -9,40 +9,32 @@ export function getDecisionKindLabel(kind: DecisionKind): string {
   switch (kind) {
     case "note":
       return "Note";
-    case "risk":
-      return "Accepted risk";
     case "question":
-      return "Open question";
-    case "follow_up":
-      return "Follow-up";
+      return "Question";
+    case "risk":
+      return "Risk";
     case "block":
-      return "Needs changes";
-    case "approve_with_notes":
-      return "OK, minor notes";
+      return "Blocker";
     default:
       return kind;
   }
 }
 
 /**
- * One-line meaning for a note type, shown in the form help text.
+ * One-line meaning for a note type (tooltips).
  *
  * @param kind - Stored kind id
  */
 export function getDecisionKindHint(kind: DecisionKind): string {
   switch (kind) {
     case "note":
-      return "General remark";
-    case "risk":
-      return "You are OK shipping with this tradeoff";
+      return "General remark or decision";
     case "question":
       return "Needs an answer";
-    case "follow_up":
-      return "Do this later";
+    case "risk":
+      return "Accepted tradeoff";
     case "block":
-      return "Blocking concern before merge";
-    case "approve_with_notes":
-      return "Fine to merge; small polish only";
+      return "Must fix before merge";
     default:
       return "";
   }
@@ -61,7 +53,7 @@ export const DECISION_KIND_OPTIONS: readonly {
    */
   label: string;
   /**
-   * One-line meaning for help text.
+   * One-line meaning for tooltips.
    */
   hint: string;
 }[] = [
@@ -71,31 +63,53 @@ export const DECISION_KIND_OPTIONS: readonly {
     hint: getDecisionKindHint("note"),
   },
   {
-    value: "risk",
-    label: getDecisionKindLabel("risk"),
-    hint: getDecisionKindHint("risk"),
-  },
-  {
     value: "question",
     label: getDecisionKindLabel("question"),
     hint: getDecisionKindHint("question"),
   },
   {
-    value: "follow_up",
-    label: getDecisionKindLabel("follow_up"),
-    hint: getDecisionKindHint("follow_up"),
+    value: "risk",
+    label: getDecisionKindLabel("risk"),
+    hint: getDecisionKindHint("risk"),
   },
   {
     value: "block",
     label: getDecisionKindLabel("block"),
     hint: getDecisionKindHint("block"),
   },
-  {
-    value: "approve_with_notes",
-    label: getDecisionKindLabel("approve_with_notes"),
-    hint: getDecisionKindHint("approve_with_notes"),
-  },
 ] as const;
+
+/**
+ * Maps any stored or legacy kind string to the current four types.
+ *
+ * @param raw - Value from storage or form
+ */
+export function normalizeDecisionKind(raw: unknown): DecisionKind {
+  if (raw === "question") {
+    return "question";
+  }
+  if (raw === "risk") {
+    return "risk";
+  }
+  if (raw === "block") {
+    return "block";
+  }
+  // note, follow_up, approve_with_notes, and anything unknown → note
+  return "note";
+}
+
+/**
+ * Returns a decision with a normalized kind (for load/migrate paths).
+ *
+ * @param decision - Decision as read from storage
+ */
+export function normalizeDecision(decision: Decision): Decision {
+  const kind = normalizeDecisionKind(decision.kind);
+  if (kind === decision.kind) {
+    return decision;
+  }
+  return { ...decision, kind };
+}
 
 /**
  * Plain-language label for progress (stored as `status`).
@@ -163,14 +177,12 @@ export function getDefaultStatusForKind(kind: DecisionKind): DecisionStatus {
   switch (kind) {
     case "question":
       return "open_question";
-    case "note":
-    case "approve_with_notes":
-      return "decided";
-    case "risk":
-    case "follow_up":
     case "block":
-    default:
       return "draft";
+    case "note":
+    case "risk":
+    default:
+      return "decided";
   }
 }
 
@@ -268,10 +280,12 @@ export function formatOpenWorkSummary(
     if (d.kind === "block" && d.status !== "decided" && d.status !== "superseded") {
       blocking += 1;
     }
-    if (d.status === "open_question" || d.kind === "question") {
-      if (d.status !== "decided" && d.status !== "superseded") {
-        waiting += 1;
-      }
+    if (
+      (d.status === "open_question" || d.kind === "question") &&
+      d.status !== "decided" &&
+      d.status !== "superseded"
+    ) {
+      waiting += 1;
     }
     if (
       d.status === "draft" ||
@@ -291,12 +305,10 @@ export function formatOpenWorkSummary(
     parts.push(`${open} open`);
   }
   if (waiting > 0) {
-    parts.push(
-      `${waiting} waiting for clarification`,
-    );
+    parts.push(`${waiting} waiting for clarification`);
   }
   if (blocking > 0) {
-    parts.push(`${blocking} needs changes`);
+    parts.push(`${blocking} blocker${blocking === 1 ? "" : "s"}`);
   }
   return parts.join(" · ");
 }
