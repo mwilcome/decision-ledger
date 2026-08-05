@@ -26,6 +26,11 @@ export default defineConfig({
           src: "manifest.json",
           dest: ".",
         },
+        {
+          // Extension toolbar and store icons (16/32/48/128).
+          src: "icons/*",
+          dest: "icons",
+        },
       ],
     }),
   ],
